@@ -72,7 +72,7 @@ st.markdown("""
         font-size: 1.1rem;
     }
 </style>
-""", unsafe_allowed_html=True)
+""", unsafe_allow_html=True)
 
 # ─── Initialize State ────────────────────────────────────────────────────────
 if "selected_kos_id" not in st.session_state:
@@ -89,8 +89,8 @@ if "payment_done" not in st.session_state:
 groq_api_key = st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
 
 # Sidebar Branding and Navigation
-st.sidebar.markdown("<h2 style='color: #2563EB; font-weight:800; margin-bottom: 0;'>KosSemarang.id</h2>", unsafe_allowed_html=True)
-st.sidebar.markdown("<p style='color: #6B7280; font-size:0.85rem; margin-bottom: 1.5rem;'>Cari Kos Terbaik di Semarang</p>", unsafe_allowed_html=True)
+st.sidebar.markdown("<h2 style='color: #2563EB; font-weight:800; margin-bottom: 0;'>KosSemarang.id</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<p style='color: #6B7280; font-size:0.85rem; margin-bottom: 1.5rem;'>Cari Kos Terbaik di Semarang</p>", unsafe_allow_html=True)
 
 menu = st.sidebar.radio("Navigasi", ["🏠 Beranda", "💬 Tanya Kosi (Chatbot)", "ℹ️ Tentang Kami"])
 
@@ -173,12 +173,12 @@ if menu == "🏠 Beranda":
             col1, col2 = st.columns([3, 2])
             
             with col1:
-                st.markdown(f"<h1 style='color:#1E3A8A;'>{kos['nama']}</h1>", unsafe_allowed_html=True)
+                st.markdown(f"<h1 style='color:#1E3A8A;'>{kos['nama']}</h1>", unsafe_allow_html=True)
                 st.write(f"📍 {kos['alamat']} ({kos['kecamatan']})")
                 
                 # Badges & Info
                 tipe_badge = f"<span class='badge-{kos['tipe']}'>Kos {kos['tipe'].capitalize()}</span>"
-                st.markdown(f"{tipe_badge} &nbsp; ⭐ {kos['rating']} ({kos['ulasan']} Ulasan)", unsafe_allowed_html=True)
+                st.markdown(f"{tipe_badge} &nbsp; ⭐ {kos['rating']} ({kos['ulasan']} Ulasan)", unsafe_allow_html=True)
                 
                 st.markdown("### Foto Kos")
                 # Show principal image
@@ -209,7 +209,7 @@ if menu == "🏠 Beranda":
                     f"<p style='color:#6B7280; font-size:0.85rem;'>Jarak: {kos['jarak_kampus']}</p>"
                     f"<hr style='margin:16px 0;'>"
                     f"</div>",
-                    unsafe_allowed_html=True
+                    unsafe_allow_html=True
                 )
                 
                 # Booking / Payment Area
@@ -258,7 +258,7 @@ if menu == "🏠 Beranda":
                             "<strong>Scan QR untuk Membayar</strong><br>"
                             "<p style='color:#6B7280; font-size:0.8rem; margin-top:4px;'>Gunakan aplikasi mobile banking Anda untuk scan QR Code di bawah</p>"
                             "</div>",
-                            unsafe_allowed_html=True
+                            unsafe_allow_html=True
                         )
                         
                         # Generate qr code image using public api
@@ -280,7 +280,7 @@ if menu == "🏠 Beranda":
                             "<h3 style='color:#059669; margin-top:0;'>✅ Pembayaran Berhasil Dikonfirmasi!</h3>"
                             "<p style='margin-bottom:0;'>Kode QR telah dihapus. Pemilik kos akan segera menghubungi Anda melalui nomor WhatsApp.</p>"
                             "</div>",
-                            unsafe_allowed_html=True
+                            unsafe_allow_html=True
                         )
                         
                         if st.button("Kembali ke Daftar Kos", on_click=show_list):
@@ -288,8 +288,8 @@ if menu == "🏠 Beranda":
                             
     else:
         # Main Listings Page
-        st.markdown("<h1 class='main-title'>Temukan Kos Terbaik di Semarang</h1>", unsafe_allowed_html=True)
-        st.markdown("<p class='sub-title'>Temukan hunian kos nyaman, terjangkau, dan dekat dengan kampus Anda.</p>", unsafe_allowed_html=True)
+        st.markdown("<h1 class='main-title'>Temukan Kos Terbaik di Semarang</h1>", unsafe_allow_html=True)
+        st.markdown("<p class='sub-title'>Temukan hunian kos nyaman, terjangkau, dan dekat dengan kampus Anda.</p>", unsafe_allow_html=True)
         
         # Hero Search Card
         search_query = st.text_input("Cari kos berdasarkan nama atau alamat...", placeholder="Masukkan nama kos...")
@@ -348,7 +348,7 @@ if menu == "🏠 Beranda":
                         f"<span style='font-size:0.85rem;'>⭐ {kos['rating']}</span>"
                         f"</div>"
                         f"</div>",
-                        unsafe_allowed_html=True
+                        unsafe_allow_html=True
                     )
                     
                     # Detail button
@@ -358,8 +358,8 @@ if menu == "🏠 Beranda":
 
 # ─── NAVIGATION: 💬 Tanya Kosi (Chatbot) ──────────────────────────────────────
 elif menu == "💬 Tanya Kosi (Chatbot)":
-    st.markdown("<h1 class='main-title'>💬 Tanya Kosi (Chatbot AI)</h1>", unsafe_allowed_html=True)
-    st.markdown("<p class='sub-title'>Tanyakan apa saja seputar kos di Semarang, survei layanan, atau minta rekomendasi.</p>", unsafe_allowed_html=True)
+    st.markdown("<h1 class='main-title'>💬 Tanya Kosi (Chatbot AI)</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='sub-title'>Tanyakan apa saja seputar kos di Semarang, survei layanan, atau minta rekomendasi.</p>", unsafe_allow_html=True)
     
     if not groq_api_key:
         st.info("💡 Hubungkan Groq API Key Anda pada menu di sebelah kiri untuk mulai chatting!")
@@ -428,7 +428,7 @@ elif menu == "💬 Tanya Kosi (Chatbot)":
 
 # ─── NAVIGATION: ℹ️ Tentang Kami ──────────────────────────────────────────────
 elif menu == "ℹ️ Tentang Kami":
-    st.markdown("<h1 class='main-title'>Tentang KosSemarang.id</h1>", unsafe_allowed_html=True)
+    st.markdown("<h1 class='main-title'>Tentang KosSemarang.id</h1>", unsafe_allow_html=True)
     st.write(
         "KosSemarang.id adalah platform pencarian kos digital di kota Semarang. "
         "Kami menyediakan berbagai pilihan kos mulai dari kos putra, putri, hingga campur dengan "
