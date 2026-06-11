@@ -1,5 +1,6 @@
 import os
 import json
+import base64
 import streamlit as st
 from dotenv import load_dotenv
 from groq import Groq
@@ -17,23 +18,40 @@ st.set_page_config(
     page_title="KosSemarang.id - Cari Kos di Semarang",
     page_icon="🏠",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Custom Styling (White and Blue Theme)
+# Force hiding the sidebar and customizing default streamlit UI elements
 st.markdown("""
 <style>
-    .main-title {
-        color: #1E3A8A;
-        font-weight: 800;
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+    /* Hide Streamlit sidebar and adjust top padding */
+    [data-testid="stSidebar"] {
+        display: none;
     }
-    .sub-title {
-        color: #4B5563;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
+    [data-testid="stHeader"] {
+        background-color: transparent;
+        z-index: 1;
     }
+    .block-container {
+        padding-top: 0rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    /* Global Font Settings */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Main Layout Styling */
+    .main-content {
+        padding: 0 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* Cards */
     .kos-card {
         background-color: #FFFFFF;
         border: 1px solid #E5E7EB;
@@ -41,6 +59,8 @@ st.markdown("""
         padding: 16px;
         margin-bottom: 20px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        font-family: 'Inter', sans-serif;
+        transition: transform 0.2s;
     }
     .badge-putri {
         background-color: #FDF2F8;
@@ -75,6 +95,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Initialize State ────────────────────────────────────────────────────────
+if "page" not in st.session_state:
+    st.session_state.page = "Beranda"
 if "selected_kos_id" not in st.session_state:
     st.session_state.selected_kos_id = None
 if "messages" not in st.session_state:
@@ -84,26 +106,17 @@ if "booking_success" not in st.session_state:
 if "payment_done" not in st.session_state:
     st.session_state.payment_done = False
 
+# Search/Filter State
+if "search_area" not in st.session_state:
+    st.session_state.search_area = "Semua Area"
+if "search_tipe" not in st.session_state:
+    st.session_state.search_tipe = "Semua Tipe"
+if "search_budget" not in st.session_state:
+    st.session_state.search_budget = "Semua Budget"
+
 # ─── Groq API Configuration ──────────────────────────────────────────────────
-# Prioritize Streamlit secrets, then .env, then sidebar input
 groq_api_key = st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
 
-# Sidebar Branding and Navigation
-st.sidebar.markdown("<h2 style='color: #2563EB; font-weight:800; margin-bottom: 0;'>KosSemarang.id</h2>", unsafe_allow_html=True)
-st.sidebar.markdown("<p style='color: #6B7280; font-size:0.85rem; margin-bottom: 1.5rem;'>Cari Kos Terbaik di Semarang</p>", unsafe_allow_html=True)
-
-menu = st.sidebar.radio("Navigasi", ["🏠 Beranda", "💬 Tanya Kosi (Chatbot)", "ℹ️ Tentang Kami"])
-
-# Sidebar Groq API Key Input if not configured
-if not groq_api_key:
-    st.sidebar.warning("⚠️ GROQ_API_KEY belum dikonfigurasi.")
-    groq_api_key_input = st.sidebar.text_input("Masukkan Groq API Key:", type="password")
-    if groq_api_key_input:
-        groq_api_key = groq_api_key_input
-else:
-    groq_api_key_input = ""
-
-# Setup System Prompt for Chatbot
 SYSTEM_PROMPT = """Kamu adalah Kosi, asisten virtual dari KosSemarang.id — platform cari kos di Semarang.
 
 Karakter kamu:
@@ -159,32 +172,99 @@ def show_list():
     st.session_state.booking_success = None
     st.session_state.payment_done = False
 
-# ─── NAVIGATION: 🏠 Beranda ──────────────────────────────────────────────────
-if menu == "🏠 Beranda":
-    # If a specific kos details page is selected
+# ─── HEADER & NAVBAR ──────────────────────────────────────────────────────────
+# 1. Blue Topbar
+st.markdown("""
+<div style="background-color: #0F2C59; color: rgba(255,255,255,0.9); padding: 8px 40px; display: flex; justify-content: space-between; font-size: 0.78rem; font-family: 'Inter', sans-serif;">
+    <div>📍 Semarang, Jawa Tengah &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 📞 (024) 1234-567</div>
+    <div style="display: flex; gap: 20px;">
+        <span>Tentang Kami</span>
+        <span>Bantuan</span>
+        <span style="color: #10B981; font-weight: 600;">🟢 WhatsApp</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# 2. White Navbar
+st.markdown("""<div style="height: 10px;"></div>""", unsafe_allow_html=True)
+nav_container = st.container()
+with nav_container:
+    col_logo, col_links, col_btn = st.columns([1.5, 3.5, 1.2])
+    
+    with col_logo:
+        st.markdown("""
+        <div style="display: flex; align-items: center; gap: 8px; padding-left: 40px; padding-top: 6px;">
+            <span style="background: #2563EB; color: white; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 1.1rem;">🏠</span>
+            <span style="font-weight: 800; font-size: 1.35rem; color: #1F2937; font-family: 'Inter', sans-serif;">Kos<span style="color: #2563EB;">Semarang</span>.id</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_links:
+        # Navigation tabs as buttons
+        nav_cols = st.columns(5)
+        pages = ["Beranda", "Cari Kos", "Peta Lokasi", "Tentang", "Kontak"]
+        for i, page_name in enumerate(pages):
+            with nav_cols[i]:
+                # Style active page
+                is_active = st.session_state.page == page_name
+                # Use custom CSS styling directly on Streamlit buttons to make them look like tabs
+                if st.button(page_name, key=f"nav_{page_name}", use_container_width=True):
+                    st.session_state.page = page_name
+                    st.session_state.selected_kos_id = None
+                    st.rerun()
+                    
+    with col_btn:
+        # Orange chat button
+        # Apply custom style to the chat button
+        st.markdown("""
+        <style>
+        div[element-id="tanya_kosi_top"] button {
+            background-color: #FF5A36 !important;
+            color: white !important;
+            border: none !important;
+            font-weight: bold !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        if st.button("🤖 Tanya Kosi", key="tanya_kosi_top", use_container_width=True):
+            st.session_state.page = "Chatbot"
+            st.rerun()
+
+st.markdown("""<hr style="margin: 10px 0 0 0; border: 0; border-top: 1px solid #E5E7EB;">""", unsafe_allow_html=True)
+
+# Load base64 city background
+try:
+    with open("static/img/hero-semarang.jpg", "rb") as f:
+        img_bytes = f.read()
+    img_b64 = base64.b64encode(img_bytes).decode()
+    hero_bg_style = f"background-image: linear-gradient(to bottom, rgba(0, 20, 60, 0.45) 0%, rgba(0, 5, 25, 0.7) 100%), url('data:image/jpeg;base64,{img_b64}');"
+except Exception:
+    hero_bg_style = "background-image: linear-gradient(to bottom, rgba(0, 20, 60, 0.45) 0%, rgba(0, 5, 25, 0.7) 100%), url('https://images.unsplash.com/photo-1605538032432-a9f0c8d9baac?w=1600');"
+
+# ─── PAGE: Beranda & Cari Kos ──────────────────────────────────────────────────
+if st.session_state.page in ["Beranda", "Cari Kos"]:
+    
+    # Detail View
     if st.session_state.selected_kos_id is not None:
+        st.markdown("<div class='main-content'>", unsafe_allow_html=True)
         kos_id = st.session_state.selected_kos_id
         kos = next((k for k in KOS_DATA if k["id"] == kos_id), None)
         
         if kos:
             st.button("⬅️ Kembali ke Daftar Kos", on_click=show_list)
             
-            # Detail layout
             col1, col2 = st.columns([3, 2])
             
             with col1:
                 st.markdown(f"<h1 style='color:#1E3A8A;'>{kos['nama']}</h1>", unsafe_allow_html=True)
                 st.write(f"📍 {kos['alamat']} ({kos['kecamatan']})")
                 
-                # Badges & Info
                 tipe_badge = f"<span class='badge-{kos['tipe']}'>Kos {kos['tipe'].capitalize()}</span>"
                 st.markdown(f"{tipe_badge} &nbsp; ⭐ {kos['rating']} ({kos['ulasan']} Ulasan)", unsafe_allow_html=True)
                 
                 st.markdown("### Foto Kos")
-                # Show principal image
                 st.image(kos["foto_utama"], use_container_width=True)
                 
-                # Show gallery
                 gallery_cols = st.columns(len(kos["foto"]))
                 for idx, img_url in enumerate(kos["foto"]):
                     with gallery_cols[idx]:
@@ -200,7 +280,6 @@ if menu == "🏠 Beranda":
                         st.write(f"✓ {f}")
 
             with col2:
-                # Booking Card
                 st.markdown(
                     f"<div style='background-color:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:24px; margin-top:20px;'>"
                     f"<h4 style='margin:0;'>Harga Sewa</h4>"
@@ -212,7 +291,6 @@ if menu == "🏠 Beranda":
                     unsafe_allow_html=True
                 )
                 
-                # Booking / Payment Area
                 if not st.session_state.booking_success:
                     st.markdown("### Form Booking")
                     if not kos["tersedia"]:
@@ -230,7 +308,6 @@ if menu == "🏠 Beranda":
                                 if not nama or not no_hp:
                                     st.error("Harap isi semua kolom form.")
                                 else:
-                                    # Generate dummy booking id
                                     booking_id = f"BK{kos['id']:03d}{len(nama)}{durasi:02d}"
                                     st.session_state.booking_success = {
                                         "booking_id": booking_id,
@@ -243,15 +320,12 @@ if menu == "🏠 Beranda":
                                     }
                                     st.rerun()
                 else:
-                    # Booking Success & QR Payment
                     b = st.session_state.booking_success
-                    
                     st.success("🎉 Booking Berhasil!")
                     st.markdown(f"**ID Booking:** `{b['booking_id']}`")
                     st.write(f"Penyewa: **{b['nama']}**")
                     st.write(f"Mulai: **{b['tanggal']}** ({b['durasi']} Bulan)")
                     
-                    # QR Code box
                     if not st.session_state.payment_done:
                         st.markdown(
                             "<div style='border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; background-color: #F8FAFC; text-align: center; margin-bottom:16px;'>"
@@ -261,19 +335,16 @@ if menu == "🏠 Beranda":
                             unsafe_allow_html=True
                         )
                         
-                        # Generate qr code image using public api
                         payment_url = f"http://localhost:5050/payment/confirm/{b['booking_id']}"
                         qr_api_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={urllib.parse.quote(payment_url)}"
                         
                         st.image(qr_api_url, width=200)
                         st.write(f"Jumlah Tagihan: **Rp {b['total_harga']:,}**")
                         
-                        # Simulasikan Scan QR (Tombol Pembayaran)
                         if st.button("Simulasikan Pembayaran Berhasil (Scan QR)"):
                             st.session_state.payment_done = True
                             st.rerun()
                     else:
-                        # QR Code disappears and booking is fully confirmed
                         st.balloons()
                         st.markdown(
                             "<div style='border: 2px solid #10B981; border-radius: 8px; padding: 20px; background-color: #ECFDF5; text-align: center;'>"
@@ -285,48 +356,123 @@ if menu == "🏠 Beranda":
                         
                         if st.button("Kembali ke Daftar Kos", on_click=show_list):
                             pass
-                            
+        st.markdown("</div>", unsafe_allow_html=True)
+        
     else:
-        # Main Listings Page
-        st.markdown("<h1 class='main-title'>Temukan Kos Terbaik di Semarang</h1>", unsafe_allow_html=True)
-        st.markdown("<p class='sub-title'>Temukan hunian kos nyaman, terjangkau, dan dekat dengan kampus Anda.</p>", unsafe_allow_html=True)
+        # 1. Hero banner section with city panorama background
+        st.markdown(f"""
+        <div style="{hero_bg_style} background-size: cover; background-position: center; padding: 80px 40px 100px 40px; text-align: center; color: white; font-family: 'Inter', sans-serif;">
+            <h1 style="font-size: 2.75rem; font-weight: 800; color: white; margin-bottom: 8px; letter-spacing: -0.5px;">Hai, mau cari kos di mana?</h1>
+            <p style="font-size: 1.15rem; color: rgba(255,255,255,0.9); margin-bottom: 0;">Temukan ratusan kos terverifikasi di Semarang — murah, nyaman, dekat kampus.</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Hero Search Card
-        search_query = st.text_input("Cari kos berdasarkan nama atau alamat...", placeholder="Masukkan nama kos...")
+        # 2. Main Page Container
+        st.markdown("<div class='main-content'>", unsafe_allow_html=True)
         
-        # Grid of Filters (Horizontal)
-        filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
-        
-        with filter_col1:
-            kecamatan_filter = st.selectbox("Kecamatan", ["Semua Kecamatan"] + KECAMATAN_LIST)
-        with filter_col2:
-            tipe_filter = st.radio("Tipe Kos", ["Semua", "Putra", "Putri", "Campur"], horizontal=True)
-        with filter_col3:
-            harga_max = st.slider("Budget Maksimal (Rp/bulan)", min_value=500000, max_value=2000000, value=2000000, step=100000)
-        with filter_col4:
-            fasilitas_filter = st.multiselect("Fasilitas Pilihan", FASILITAS_LIST)
+        # 3. Search Box Card
+        st.markdown("""<div style="height: 15px;"></div>""", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("""
+            <div style="display: flex; gap: 24px; border-bottom: 1px solid #E5E7EB; margin-bottom: 16px; padding-bottom: 10px;">
+                <span style="color: #2563EB; font-weight: 700; border-bottom: 2px solid #2563EB; padding-bottom: 10px; cursor: pointer; font-size: 0.95rem;">🏠 Cari Kos</span>
+                <span style="color: #6B7280; font-weight: 500; padding-bottom: 10px; cursor: pointer; font-size: 0.95rem;">🗺️ Lihat Peta</span>
+                <span style="color: #6B7280; font-weight: 500; padding-bottom: 10px; cursor: pointer; font-size: 0.95rem;">🤖 Tanya AI</span>
+            </div>
+            """, unsafe_allow_html=True)
             
-        # Filtering Logic
+            # Select boxes row
+            s_col1, s_col2, s_col3 = st.columns([2, 1, 1])
+            with s_col1:
+                # Custom Selectbox for Area/Kecamatan
+                st.session_state.search_area = st.selectbox("Lokasi / Area", ["Semua Area"] + KECAMATAN_LIST, index=(["Semua Area"] + KECAMATAN_LIST).index(st.session_state.search_area))
+            with s_col2:
+                # Custom Selectbox for Tipe Kos
+                st.session_state.search_tipe = st.selectbox("Tipe Kos", ["Semua Tipe", "Putra", "Putri", "Campur"], index=["Semua Tipe", "Putra", "Putri", "Campur"].index(st.session_state.search_tipe))
+            with s_col3:
+                # Custom Selectbox for Budget
+                st.session_state.search_budget = st.selectbox("Budget per Bulan", ["Semua Budget", "< 1 Juta", "1 - 1.5 Juta", "> 1.5 Juta"], index=["Semua Budget", "< 1 Juta", "1 - 1.5 Juta", "> 1.5 Juta"].index(st.session_state.search_budget))
+            
+            # Popular Suggestion Tags Row
+            tag_cols = st.columns([0.8, 1, 1, 1, 1, 1.2, 4])
+            with tag_cols[0]:
+                st.markdown("<p style='color:#6B7280; font-size:0.85rem; padding-top: 8px;'>Populer:</p>", unsafe_allow_html=True)
+            with tag_cols[1]:
+                if st.button("Tembalang", key="tag_tembalang"):
+                    st.session_state.search_area = "Tembalang"
+                    st.rerun()
+            with tag_cols[2]:
+                if st.button("Banyumanik", key="tag_banyumanik"):
+                    st.session_state.search_area = "Banyumanik"
+                    st.rerun()
+            with tag_cols[3]:
+                if st.button("Kos Putri", key="tag_putri"):
+                    st.session_state.search_tipe = "Putri"
+                    st.rerun()
+            with tag_cols[4]:
+                if st.button("Kos Putra", key="tag_putra"):
+                    st.session_state.search_tipe = "Putra"
+                    st.rerun()
+            with tag_cols[5]:
+                if st.button("Semarang Tengah", key="tag_tengah"):
+                    st.session_state.search_area = "Semarang Tengah"
+                    st.rerun()
+                    
+        # 4. Stats Section (Exactly like Flask App dividers)
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        stats_col1, stats_col2, stats_col3, stats_col4 = st.columns(4)
+        with stats_col1:
+            st.markdown("""
+            <div style="text-align: center; border-right: 1px solid #E5E7EB; padding: 12px 0;">
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">8+</h2>
+                <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Kos Terdaftar</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with stats_col2:
+            st.markdown("""
+            <div style="text-align: center; border-right: 1px solid #E5E7EB; padding: 12px 0;">
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">7+</h2>
+                <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Kamar Tersedia</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with stats_col3:
+            st.markdown("""
+            <div style="text-align: center; border-right: 1px solid #E5E7EB; padding: 12px 0;">
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">10</h2>
+                <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Kecamatan</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with stats_col4:
+            st.markdown("""
+            <div style="text-align: center; padding: 12px 0;">
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">2.500+</h2>
+                <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Pengguna Aktif</p>
+            </div>
+            """, unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 10px 0 30px 0; border:0; border-top:1px solid #E5E7EB;'>", unsafe_allow_html=True)
+        
+        # 5. Filtering list based on user selections
         filtered_kos = KOS_DATA.copy()
         
-        if search_query:
-            filtered_kos = [k for k in filtered_kos if search_query.lower() in k["nama"].lower() or search_query.lower() in k["alamat"].lower()]
+        # Filter by Area/Kecamatan
+        if st.session_state.search_area != "Semua Area":
+            filtered_kos = [k for k in filtered_kos if k["kecamatan"] == st.session_state.search_area]
             
-        if kecamatan_filter != "Semua Kecamatan":
-            filtered_kos = [k for k in filtered_kos if k["kecamatan"] == kecamatan_filter]
+        # Filter by Tipe Kos
+        if st.session_state.search_tipe != "Semua Tipe":
+            filtered_kos = [k for k in filtered_kos if k["tipe"] == st.session_state.search_tipe.lower()]
             
-        if tipe_filter != "Semua":
-            filtered_kos = [k for k in filtered_kos if k["tipe"] == tipe_filter.lower()]
+        # Filter by Budget range
+        if st.session_state.search_budget == "< 1 Juta":
+            filtered_kos = [k for k in filtered_kos if k["harga"] < 1000000]
+        elif st.session_state.search_budget == "1 - 1.5 Juta":
+            filtered_kos = [k for k in filtered_kos if 1000000 <= k["harga"] <= 1500000]
+        elif st.session_state.search_budget == "> 1.5 Juta":
+            filtered_kos = [k for k in filtered_kos if k["harga"] > 1500000]
             
-        filtered_kos = [k for k in filtered_kos if k["harga"] <= harga_max]
+        # 6. Displaying results in columns
+        st.markdown(f"<h3 style='color:#1F2937; margin-bottom: 20px;'>Ditemukan {len(filtered_kos)} Kos</h3>", unsafe_allow_html=True)
         
-        if fasilitas_filter:
-            filtered_kos = [k for k in filtered_kos if all(f in k["fasilitas"] for f in fasilitas_filter)]
-            
-        # Display Results
-        st.markdown(f"### Ditemukan {len(filtered_kos)} Kos")
-        
-        # Display in a beautiful grid of 3 columns
         if not filtered_kos:
             st.warning("Tidak ada kos yang cocok dengan kriteria Anda.")
         else:
@@ -343,7 +489,7 @@ if menu == "🏠 Beranda":
                         f"<span class='{tipe_style}'>{badge_text}</span>"
                         f"<h3 style='margin: 8px 0 4px 0; font-size:1.15rem; color:#1F2937;'>{kos['nama']}</h3>"
                         f"<p style='color:#6B7280; font-size:0.85rem; margin-bottom:8px;'>📍 {kos['kecamatan']}</p>"
-                        f"<div style='display:flex; justify-content:space-between; align-items:center;'>"
+                        f"<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;'>"
                         f"<span class='price-text'>{kos['harga_display']}</span>"
                         f"<span style='font-size:0.85rem;'>⭐ {kos['rating']}</span>"
                         f"</div>"
@@ -351,20 +497,22 @@ if menu == "🏠 Beranda":
                         unsafe_allow_html=True
                     )
                     
-                    # Detail button
-                    if st.button(f"Lihat Detail", key=f"det_{kos['id']}"):
+                    if st.button(f"Lihat Detail", key=f"det_{kos['id']}", use_container_width=True):
                         st.session_state.selected_kos_id = kos["id"]
                         st.rerun()
+                        
+        st.markdown("</div>", unsafe_allow_html=True)
 
-# ─── NAVIGATION: 💬 Tanya Kosi (Chatbot) ──────────────────────────────────────
-elif menu == "💬 Tanya Kosi (Chatbot)":
+# ─── PAGE: Chatbot ────────────────────────────────────────────────────────────
+elif st.session_state.page == "Chatbot":
+    st.markdown("<div class='main-content' style='margin-top: 24px;'>", unsafe_allow_html=True)
     st.markdown("<h1 class='main-title'>💬 Tanya Kosi (Chatbot AI)</h1>", unsafe_allow_html=True)
     st.markdown("<p class='sub-title'>Tanyakan apa saja seputar kos di Semarang, survei layanan, atau minta rekomendasi.</p>", unsafe_allow_html=True)
     
     if not groq_api_key:
         st.info("💡 Hubungkan Groq API Key Anda pada menu di sebelah kiri untuk mulai chatting!")
     else:
-        # Chat history display
+        # Chat message display
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
@@ -392,16 +540,13 @@ elif menu == "💬 Tanya Kosi (Chatbot)":
             user_input = suggested_prompt
             
         if user_input:
-            # Display user message
             with st.chat_message("user"):
                 st.markdown(user_input)
             st.session_state.messages.append({"role": "user", "content": user_input})
             
-            # Call Groq
             try:
                 client = Groq(api_key=groq_api_key)
                 
-                # Build chat context
                 messages_for_api = [{"role": "system", "content": SYSTEM_PROMPT}]
                 for msg in st.session_state.messages[-10:]:
                     messages_for_api.append({"role": msg["role"], "content": msg["content"]})
@@ -416,7 +561,6 @@ elif menu == "💬 Tanya Kosi (Chatbot)":
                     
                 reply = completion.choices[0].message.content
                 
-                # Display assistant message
                 with st.chat_message("assistant"):
                     st.markdown(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
@@ -425,9 +569,11 @@ elif menu == "💬 Tanya Kosi (Chatbot)":
                 
             except Exception as e:
                 st.error(f"Terjadi kesalahan saat memanggil AI: {str(e)}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ─── NAVIGATION: ℹ️ Tentang Kami ──────────────────────────────────────────────
-elif menu == "ℹ️ Tentang Kami":
+# ─── PAGE: Tentang ────────────────────────────────────────────────────────────
+elif st.session_state.page == "Tentang":
+    st.markdown("<div class='main-content' style='margin-top: 24px;'>", unsafe_allow_html=True)
     st.markdown("<h1 class='main-title'>Tentang KosSemarang.id</h1>", unsafe_allow_html=True)
     st.write(
         "KosSemarang.id adalah platform pencarian kos digital di kota Semarang. "
@@ -435,13 +581,19 @@ elif menu == "ℹ️ Tentang Kami":
         "informasi harga, fasilitas, lokasi, dan jarak ke kampus-kampus ternama di Semarang "
         "secara transparan dan lengkap."
     )
-    
-    st.markdown("### Mengapa memilih platform kami?")
-    st.write("1. **Data Kos Terpercaya:** Semua kos diverifikasi langsung.")
-    st.write("2. **Chatbot Pintar (Kosi):** Siap memandu pencarian kos impian Anda 24 jam.")
-    st.write("3. **Sistem Booking Instan:** Booking dengan QR Code yang praktis.")
-    
-    st.markdown("### Hubungi Kami")
-    st.write("📧 Email: support@kossemarang.id")
-    st.write("📞 Telepon: 024-12345678")
-    st.write("🏢 Alamat Kantor: Jl. Pemuda No. 100, Kota Semarang, Jawa Tengah")
+    st.markdown("### Visi dan Misi Kami")
+    st.write("- Mempermudah mahasiswa dan pekerja dalam mencari kos impian mereka.")
+    st.write("- Menyediakan informasi harga dan fasilitas secara jujur tanpa manipulasi.")
+    st.write("- Memberikan proses booking online yang aman dan terpercaya.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# ─── PAGE: Kontak ─────────────────────────────────────────────────────────────
+elif st.session_state.page == "Kontak":
+    st.markdown("<div class='main-content' style='margin-top: 24px;'>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-title'>Hubungi Kami</h1>", unsafe_allow_html=True)
+    st.write("Ada pertanyaan, keluhan, atau ingin bermitra dengan kami? Silakan hubungi kontak berikut:")
+    st.write("📧 **Email:** support@kossemarang.id")
+    st.write("📞 **Telepon:** (024) 1234-567")
+    st.write("🟢 **WhatsApp:** +62 812-3456-7890")
+    st.write("🏢 **Alamat Kantor:** Jl. Pemuda No. 100, Sekayu, Semarang Tengah, Kota Semarang")
+    st.markdown("</div>", unsafe_allow_html=True)
