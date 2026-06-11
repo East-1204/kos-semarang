@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Daftar Kos Semarang — KosSemarang.id{% endblock %}
+{% block meta_desc %}Temukan semua kos di Semarang. Filter berdasarkan harga, lokasi, tipe, dan fasilitas.{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="/">Beranda</a><span>›</span><span>Cari Kos</span></div>
+    <h1 class="page-title">Daftar Kos <span>Semarang</span></h1>
+    <p class="page-sub">{{ total }} kos ditemukan — filter untuk hasil lebih spesifik</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:48px;">
+  <div style="display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start;">
+
+    <!-- FILTER -->
+    <aside class="filter-sidebar">
+      <form method="GET" action="/kos">
+        <div class="filter-heading"><i class="fas fa-sliders-h" style="color:var(--blue-600);"></i> Filter Pencarian</div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Tipe Kos</div>
+          <label class="filter-check"><input type="radio" name="tipe" value="" {% if not filters.get('tipe') %}checked{% endif %}> Semua Tipe</label>
+          <label class="filter-check"><input type="radio" name="tipe" value="putra" {% if filters.get('tipe')=='putra' %}checked{% endif %}> 👨 Putra</label>
+          <label class="filter-check"><input type="radio" name="tipe" value="putri" {% if filters.get('tipe')=='putri' %}checked{% endif %}> 👩 Putri</label>
+          <label class="filter-check"><input type="radio" name="tipe" value="campur" {% if filters.get('tipe')=='campur' %}checked{% endif %}> 👫 Campur</label>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Rentang Harga</div>
+          <div class="range-inputs">
+            <input type="number" name="harga_min" class="form-control" placeholder="Min" value="{{ filters.get('harga_min','') }}" style="font-size:0.8rem;">
+            <span class="range-sep">—</span>
+            <input type="number" name="harga_max" class="form-control" placeholder="Max" value="{{ filters.get('harga_max','') }}" style="font-size:0.8rem;">
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Kecamatan</div>
+          <select name="kecamatan" class="form-select" style="font-size:0.8rem;">
+            <option value="">Semua Kecamatan</option>
+            {% for k in kecamatan_list %}
+            <option value="{{ k }}" {% if filters.get('kecamatan')==k %}selected{% endif %}>{{ k }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Fasilitas</div>
+          {% for f in fasilitas_list[:8] %}
+          <label class="filter-check">
+            <input type="checkbox" name="fasilitas" value="{{ f }}" {% if f in filters.getlist('fasilitas') %}checked{% endif %}> {{ f }}
+          </label>
+          {% endfor %}
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Ketersediaan</div>
+          <label class="filter-check">
+            <input type="checkbox" name="tersedia" value="true" {% if filters.get('tersedia')=='true' %}checked{% endif %}> Hanya yang Tersedia
+          </label>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Urutkan</div>
+          <select name="sort" class="form-select" style="font-size:0.8rem;">
+            <option value="rating" {% if filters.get('sort','rating')=='rating' %}selected{% endif %}>Rating Tertinggi</option>
+            <option value="harga_asc" {% if filters.get('sort')=='harga_asc' %}selected{% endif %}>Harga Terendah</option>
+            <option value="harga_desc" {% if filters.get('sort')=='harga_desc' %}selected{% endif %}>Harga Tertinggi</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search"></i> Terapkan Filter</button>
+        <a href="/kos" class="btn btn-ghost btn-block mt-8" style="font-size:0.8rem;"><i class="fas fa-times"></i> Reset Filter</a>
+      </form>
+    </aside>
+
+    <!-- KOS LIST -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <p style="font-size:0.84rem;color:var(--slate-500);">
+          Menampilkan <strong style="color:var(--slate-800);">{{ total }}</strong> kos
+          {% if filters.get('kecamatan') %} di <strong style="color:var(--blue-600);">{{ filters.get('kecamatan') }}</strong>{% endif %}
+        </p>
+      </div>
+
+      {% if kos_list %}
+      <div class="kos-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+        {% for kos in kos_list %}
+        <a href="/kos/{{ kos.id }}" class="kos-card">
+          <div class="kos-img-wrap">
+            <img src="{{ kos.foto_utama }}" alt="{{ kos.nama }}" class="kos-img" loading="lazy">
+            <span class="badge badge-{{ kos.tipe }}">{{ kos.tipe.capitalize() }}</span>
+            {% if not kos.tersedia %}<span class="badge badge-penuh">Penuh</span>{% endif %}
+          </div>
+          <div class="kos-body">
+            <div class="kos-name">{{ kos.nama }}</div>
+            <div class="kos-addr"><i class="fas fa-map-marker-alt"></i>{{ kos.alamat }}</div>
+            <div class="kos-price">{{ kos.harga_display }}</div>
+            <div class="kos-tags">
+              {% for f in kos.fasilitas[:4] %}<span class="kos-tag">{{ f }}</span>{% endfor %}
+              {% if kos.fasilitas|length > 4 %}<span class="kos-tag">+{{ kos.fasilitas|length - 4 }}</span>{% endif %}
+            </div>
+            <div class="kos-footer">
+              <div class="rating">
+                <span class="rating-star">⭐</span>
+                <span class="rating-val">{{ kos.rating }}</span>
+                <span class="rating-cnt">({{ kos.ulasan }})</span>
+              </div>
+              <span class="avail {% if not kos.tersedia %}full{% endif %}">
+                {% if kos.tersedia %}{{ kos.kamar_tersisa }} kamar{% else %}Penuh{% endif %}
+              </span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div style="text-align:center;padding:64px 24px;background:white;border:1px solid var(--slate-200);border-radius:var(--radius-lg);">
+        <div style="font-size:3rem;margin-bottom:14px;">🔍</div>
+        <h3 style="margin-bottom:8px;font-size:1.1rem;">Kos tidak ditemukan</h3>
+        <p style="color:var(--slate-500);font-size:0.875rem;margin-bottom:20px;">Coba ubah filter atau tanya Kosi AI untuk rekomendasi.</p>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <a href="/kos" class="btn btn-ghost"><i class="fas fa-times"></i> Reset Filter</a>
+          <a href="/chatbot" class="btn btn-primary"><i class="fas fa-robot"></i> Tanya Kosi</a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- AI Banner -->
+      <div style="margin-top:24px;padding:16px 20px;background:var(--blue-50);border:1px solid var(--blue-100);border-radius:var(--radius-lg);display:flex;align-items:center;gap:14px;">
+        <div style="font-size:1.8rem;flex-shrink:0;">🤖</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:2px;">Bingung pilih? Tanya Kosi AI</div>
+          <div style="font-size:0.78rem;color:var(--slate-500);">Rekomendasi kos personal sesuai kebutuhan dan budget Anda.</div>
+        </div>
+        <a href="/chatbot" class="btn btn-primary btn-sm" style="flex-shrink:0;"><i class="fas fa-robot"></i> Chat Sekarang</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Cari Kos{% endblock %}
+{% block meta_description %}Cari dan temukan kos terbaik di Semarang. Filter berdasarkan lokasi, harga, tipe, dan fasilitas.{% endblock %}
+
+{% block content %}
+<!-- Search Header -->
+<section class="page-header animate-on-scroll" id="searchHeader">
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">Cari <span class="gradient-text">Kos</span> di Semarang</h1>
+            <p class="page-subtitle">Temukan kos yang sesuai dengan kebutuhan dan budget Anda</p>
+        </div>
+    </div>
+</section>
+
+<!-- Search Layout -->
+<section class="section search-section" id="searchSection">
+    <div class="container">
+        <div class="search-layout">
+            <!-- Filter Sidebar -->
+            <aside class="filter-sidebar" id="filterSidebar">
+                <div class="filter-header">
+                    <h3>
+                        <i data-lucide="sliders-horizontal"></i>
+                        Filter Pencarian
+                    </h3>
+                    <button class="btn-text" id="btnResetFilter" onclick="resetFilters()">Reset</button>
+                </div>
+
+                <form action="/search" method="GET" id="filterForm">
+                    <!-- Search Input -->
+                    <div class="filter-group" id="filterGroupSearch">
+                        <label class="filter-label">Kata Kunci</label>
+                        <div class="filter-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" name="q" id="filterSearch" placeholder="Cari nama kos..." value="{{ filters.q or '' }}">
+                        </div>
+                    </div>
+
+                    <!-- Kecamatan -->
+                    <div class="filter-group" id="filterGroupKecamatan">
+                        <label class="filter-label">Kecamatan</label>
+                        <div class="filter-checkbox-list" id="kecamatanList">
+                            {% for kec in kecamatan_list %}
+                            <label class="filter-checkbox" id="filterKec{{ loop.index }}">
+                                <input type="checkbox" name="kecamatan" value="{{ kec.name }}" {% if filters.kecamatan and kec.name in filters.kecamatan %}checked{% endif %}>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">{{ kec.name }}</span>
+                                <span class="checkbox-count">{{ kec.count }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Tipe Kos -->
+                    <div class="filter-group" id="filterGroupTipe">
+                        <label class="filter-label">Tipe Kos</label>
+                        <div class="filter-radio-group">
+                            <label class="filter-radio" id="filterTipeSemua">
+                                <input type="radio" name="tipe" value="" {% if not filters.tipe %}checked{% endif %}>
+                                <span class="radio-custom"></span>
+                                <span>Semua</span>
+                            </label>
+                            <label class="filter-radio" id="filterTipePutra">
+                                <input type="radio" name="tipe" value="Putra" {% if filters.tipe == 'Putra' %}checked{% endif %}>
+                                <span class="radio-custom"></span>
+                                <span>Putra</span>
+                            </label>
+                            <label class="filter-radio" id="filterTipePutri">
+                                <input type="radio" name="tipe" value="Putri" {% if filters.tipe == 'Putri' %}checked{% endif %}>
+                                <span class="radio-custom"></span>
+                                <span>Putri</span>
+                            </label>
+                            <label class="filter-radio" id="filterTipeCampur">
+                                <input type="radio" name="tipe" value="Campur" {% if filters.tipe == 'Campur' %}checked{% endif %}>
+                                <span class="radio-custom"></span>
+                                <span>Campur</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="filter-group" id="filterGroupHarga">
+                        <label class="filter-label">Rentang Harga</label>
+                        <div class="filter-price-range">
+                            <div class="price-input-group">
+                                <span class="price-prefix">Rp</span>
+                                <input type="number" name="harga_min" id="filterHargaMin" placeholder="Min" value="{{ filters.harga_min or '' }}">
+                            </div>
+                            <span class="price-separator">—</span>
+                            <div class="price-input-group">
+                                <span class="price-prefix">Rp</span>
+                                <input type="number" name="harga_max" id="filterHargaMax" placeholder="Max" value="{{ filters.harga_max or '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fasilitas -->
+                    <div class="filter-group" id="filterGroupFasilitas">
+                        <label class="filter-label">Fasilitas</label>
+                        <div class="filter-checkbox-list">
+                            {% set fasilitas_options = ['WiFi', 'AC', 'Kamar Mandi Dalam', 'Parkir', 'Dapur', 'Laundry'] %}
+                            {% for fas in fasilitas_options %}
+                            <label class="filter-checkbox" id="filterFas{{ loop.index }}">
+                                <input type="checkbox" name="fasilitas" value="{{ fas }}" {% if filters.fasilitas and fas in filters.fasilitas %}checked{% endif %}>
+                                <span class="checkbox-custom"></span>
+                                <span class="checkbox-label">{{ fas }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-primary btn-block" id="btnApplyFilter">
+                        <i data-lucide="search"></i>
+                        Terapkan Filter
+                    </button>
+                </form>
+            </aside>
+
+            <!-- Results Area -->
+            <div class="search-results" id="searchResults">
+                <!-- Results Header -->
+                <div class="results-header" id="resultsHeader">
+                    <div class="results-count">
+                        <span id="resultCount">{{ kos_list|length }}</span> kos ditemukan
+                    </div>
+                    <div class="results-sort">
+                        <label for="sortSelect">Urutkan:</label>
+                        <select name="sort" id="sortSelect" onchange="updateSort(this.value)">
+                            <option value="terbaru" {% if filters.sort == 'terbaru' or not filters.sort %}selected{% endif %}>Terbaru</option>
+                            <option value="harga_asc" {% if filters.sort == 'harga_asc' %}selected{% endif %}>Harga Terendah</option>
+                            <option value="harga_desc" {% if filters.sort == 'harga_desc' %}selected{% endif %}>Harga Tertinggi</option>
+                            <option value="rating" {% if filters.sort == 'rating' %}selected{% endif %}>Rating Tertinggi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Mobile Filter Toggle -->
+                <button class="btn btn-outline btn-filter-toggle" id="btnFilterToggle" onclick="toggleFilterSidebar()">
+                    <i data-lucide="sliders-horizontal"></i>
+                    Filter
+                </button>
+
+                <!-- Results Grid -->
+                {% if kos_list %}
+                <div class="kos-grid" id="searchResultsGrid">
+                    {% for kos in kos_list %}
+                    <a href="/kos/{{ kos.id }}" class="kos-card" id="searchKosCard{{ kos.id }}">
+                        <div class="kos-card-image">
+                            <img src="{{ kos.gambar if kos.gambar else url_for('static', filename='images/placeholder.jpg') }}" alt="{{ kos.nama }}" loading="lazy">
+                            <span class="kos-badge kos-badge-{{ kos.tipe|lower }}">{{ kos.tipe }}</span>
+                        </div>
+                        <div class="kos-card-body">
+                            <h3 class="kos-card-title">{{ kos.nama }}</h3>
+                            <div class="kos-card-location">
+                                <i data-lucide="map-pin"></i>
+                                <span>{{ kos.kecamatan }}, Semarang</span>
+                            </div>
+                            <div class="kos-card-rating">
+                                <div class="stars">
+                                    {% for i in range(5) %}
+                                        {% if i < (kos.rating | int) %}
+                                        <i data-lucide="star" class="star-filled"></i>
+                                        {% else %}
+                                        <i data-lucide="star" class="star-empty"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="rating-text">{{ kos.rating }}</span>
+                            </div>
+                            <div class="kos-card-facilities">
+                                {% if kos.fasilitas %}
+                                    {% for fas in kos.fasilitas[:3] %}
+                                    <span class="facility-badge">{{ fas }}</span>
+                                    {% endfor %}
+                                    {% if kos.fasilitas|length > 3 %}
+                                    <span class="facility-badge facility-more">+{{ kos.fasilitas|length - 3 }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="kos-card-footer">
+                                <div class="kos-price">
+                                    <span class="price-amount">Rp {{ '{:,.0f}'.format(kos.harga) }}</span>
+                                    <span class="price-period">/bulan</span>
+                                </div>
+                                <span class="kos-card-arrow">
+                                    <i data-lucide="arrow-right"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <!-- No Results -->
+                <div class="no-results" id="noResults">
+                    <div class="no-results-icon">
+                        <i data-lucide="search-x"></i>
+                    </div>
+                    <h3>Kos Tidak Ditemukan</h3>
+                    <p>Coba ubah filter pencarian Anda atau gunakan kata kunci yang berbeda.</p>
+                    <a href="/search" class="btn btn-outline" id="btnResetSearch">
+                        <i data-lucide="refresh-cw"></i>
+                        Reset Pencarian
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function resetFilters() {
+        window.location.href = '/search';
+    }
+
+    function updateSort(value) {
+        const url = new URL(window.location);
+        url.searchParams.set('sort', value);
+        window.location.href = url.toString();
+    }
+
+    function toggleFilterSidebar() {
+        const sidebar = document.getElementById('filterSidebar');
+        sidebar.classList.toggle('active');
+    }
+</script>
+{% endblock %}

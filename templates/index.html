@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}KosSemarang.id — Cari Kos Terbaik di Semarang{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <!-- Background Image with Overlay -->
+  <div class="hero-bg-img"></div>
+  <div class="hero-bg-overlay"></div>
+
+  <div class="container hero-inner">
+    <!-- Headline -->
+    <div class="hero-text">
+      <h1>Hai, mau cari kos di mana?</h1>
+      <p>Temukan ratusan kos terverifikasi di Semarang — murah, nyaman, dekat kampus.</p>
+    </div>
+
+    <!-- Search Card -->
+    <div class="search-card" data-aos>
+      <div class="search-tabs">
+        <button class="search-tab active" onclick="void(0)"><i class="fas fa-home"></i> Cari Kos</button>
+        <button class="search-tab" onclick="location.href='/lokasi'"><i class="fas fa-map"></i> Lihat Peta</button>
+        <button class="search-tab" onclick="location.href='/chatbot'"><i class="fas fa-robot"></i> Tanya AI</button>
+      </div>
+      <form id="search-form">
+        <div class="search-row">
+          <div class="form-group">
+            <label class="form-label">Lokasi / Area</label>
+            <input type="text" class="form-control" id="search-q" placeholder="Tembalang, Banyumanik, UNDIP…">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipe Kos</label>
+            <select class="form-select" id="search-tipe">
+              <option value="">Semua Tipe</option>
+              <option value="putra">Putra</option>
+              <option value="putri">Putri</option>
+              <option value="campur">Campur</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Budget per Bulan</label>
+            <select class="form-select" id="search-harga">
+              <option value="">Semua Budget</option>
+              <option value="0-500000">≤ Rp 500.000</option>
+              <option value="500000-800000">Rp 500.000 – 800.000</option>
+              <option value="800000-1200000">Rp 800.000 – 1.200.000</option>
+              <option value="1200000+">≥ Rp 1.200.000</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="visibility:hidden;">Cari</label>
+            <button type="submit" class="btn btn-primary" style="height:44px;width:100%;font-size:0.9rem;">
+              <i class="fas fa-search"></i> Cari Kos
+            </button>
+          </div>
+        </div>
+      </form>
+      <div class="search-hints">
+        <span>Populer:</span>
+        <a href="/kos?kecamatan=Tembalang">Tembalang</a>
+        <a href="/kos?kecamatan=Banyumanik">Banyumanik</a>
+        <a href="/kos?tipe=putri">Kos Putri</a>
+        <a href="/kos?tipe=putra">Kos Putra</a>
+        <a href="/kos?kecamatan=Semarang+Tengah">Semarang Tengah</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item" data-aos>
+        <div class="stat-num" data-target="{{ stats.total_kos }}" data-suffix="+">0</div>
+        <div class="stat-lbl">Kos Terdaftar</div>
+      </div>
+      <div class="stat-item" data-aos data-delay="100">
+        <div class="stat-num" data-target="{{ stats.total_tersedia }}" data-suffix="+">0</div>
+        <div class="stat-lbl">Kamar Tersedia</div>
+      </div>
+      <div class="stat-item" data-aos data-delay="200">
+        <div class="stat-num" data-target="{{ stats.kecamatan }}" data-suffix="">0</div>
+        <div class="stat-lbl">Kecamatan</div>
+      </div>
+      <div class="stat-item" data-aos data-delay="300">
+        <div class="stat-num" data-target="{{ stats.pengguna }}" data-suffix="+">0</div>
+        <div class="stat-lbl">Pengguna Aktif</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURED KOS -->
+<section class="section" style="background:white;">
+  <div class="container">
+    <div class="section-header" style="display:flex;justify-content:space-between;align-items:flex-end;" data-aos>
+      <div>
+        <div class="section-eyebrow">Pilihan Terbaik</div>
+        <h2 class="section-title" style="margin-bottom:0;">Kos Unggulan Semarang</h2>
+      </div>
+      <a href="/kos" class="btn btn-outline btn-sm">Lihat Semua <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    <div class="kos-grid">
+      {% for kos in featured %}
+      <a href="/kos/{{ kos.id }}" class="kos-card" data-aos data-delay="{{ loop.index0 * 80 }}">
+        <div class="kos-img-wrap">
+          <img src="{{ kos.foto_utama }}" alt="{{ kos.nama }}" class="kos-img" loading="lazy">
+          <span class="badge badge-{{ kos.tipe }}">{{ kos.tipe.capitalize() }}</span>
+          {% if not kos.tersedia %}<span class="badge badge-penuh">Penuh</span>{% endif %}
+        </div>
+        <div class="kos-body">
+          <div class="kos-name">{{ kos.nama }}</div>
+          <div class="kos-addr"><i class="fas fa-map-marker-alt"></i>{{ kos.alamat }}</div>
+          <div class="kos-price">{{ kos.harga_display }}</div>
+          <div class="kos-tags">
+            {% for f in kos.fasilitas[:4] %}<span class="kos-tag">{{ f }}</span>{% endfor %}
+            {% if kos.fasilitas|length > 4 %}<span class="kos-tag">+{{ kos.fasilitas|length - 4 }}</span>{% endif %}
+          </div>
+          <div class="kos-footer">
+            <div class="rating">
+              <span class="rating-star">⭐</span>
+              <span class="rating-val">{{ kos.rating }}</span>
+              <span class="rating-cnt">({{ kos.ulasan }} ulasan)</span>
+            </div>
+            <span class="avail {% if not kos.tersedia %}full{% endif %}">
+              {% if kos.tersedia %}{{ kos.kamar_tersisa }} kamar{% else %}Penuh{% endif %}
+            </span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FITUR -->
+<section class="section" style="background:var(--slate-50);">
+  <div class="container">
+    <div class="section-header text-center" data-aos>
+      <div class="section-eyebrow">Keunggulan Platform</div>
+      <h2 class="section-title">Kenapa Pilih KosSemarang.id?</h2>
+      <p class="section-desc">Semua yang Anda butuhkan untuk menemukan kos ideal, dalam satu platform.</p>
+    </div>
+    <div class="features-grid" data-aos>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-robot"></i></div>
+        <div class="feature-title">Chatbot AI Kosi</div>
+        <div class="feature-desc">Asisten AI yang siap bantu cari kos, jadwalkan survei, dan proses booking kapan saja.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+        <div class="feature-title">Data Terverifikasi</div>
+        <div class="feature-desc">Setiap kos telah diverifikasi tim kami untuk memastikan informasi akurat dan terkini.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+        <div class="feature-title">Peta Interaktif</div>
+        <div class="feature-desc">Temukan kos terdekat kampus atau kantor Anda melalui peta yang mudah digunakan.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+        <div class="feature-title">Booking & Bayar Online</div>
+        <div class="feature-desc">Konfirmasi booking dan bayar via QR Code — cepat, aman, dan tanpa antre.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI PROMO BANNER -->
+<section class="section" style="background:white;">
+  <div class="container">
+    <div style="background:linear-gradient(135deg,var(--blue-700) 0%,var(--blue-600) 100%);border-radius:var(--radius-xl);padding:44px 40px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;" data-aos>
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:700;color:white;margin-bottom:12px;border:1px solid rgba(255,255,255,0.2);">🤖 AI-Powered</div>
+        <h2 style="font-size:1.6rem;font-weight:800;color:white;margin-bottom:8px;">Bingung Cari Kos?</h2>
+        <p style="color:rgba(255,255,255,0.82);font-size:0.9rem;line-height:1.7;max-width:480px;">Tanya Kosi — asisten AI kami bantu temukan kos terbaik sesuai budget, lokasi, dan fasilitas yang Anda inginkan. Gratis, 24 jam.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;flex-shrink:0;">
+        <a href="/chatbot" class="btn btn-lg" style="background:white;color:var(--blue-600);font-weight:700;">
+          <i class="fas fa-comments"></i> Tanya Kosi AI
+        </a>
+        <a href="/kos" class="btn btn-lg btn-outline" style="border-color:rgba(255,255,255,0.4);color:white;background:transparent;">
+          <i class="fas fa-search"></i> Cari Manual
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AREA POPULER -->
+<section class="section" style="background:var(--slate-50);">
+  <div class="container">
+    <div class="section-header" data-aos>
+      <div class="section-eyebrow">Jelajahi Lokasi</div>
+      <h2 class="section-title">Area Populer di Semarang</h2>
+    </div>
+    <div class="area-grid">
+      {% set areas = [('Tembalang',3),('Banyumanik',1),('Semarang Tengah',1),('Semarang Selatan',2),('Semarang Barat',1),('Pleburan',1)] %}
+      {% for area, count in areas %}
+      <a href="/kos?kecamatan={{ area }}" class="area-card" data-aos data-delay="{{ loop.index0 * 60 }}">
+        <div style="font-size:1.4rem;margin-bottom:8px;">📍</div>
+        <div class="area-card-name">{{ area }}</div>
+        <div class="area-card-count">{{ count }} kos tersedia</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

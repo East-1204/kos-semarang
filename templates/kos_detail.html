@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block title %}{{ kos.nama }} — KosSemarang.id{% endblock %}
+{% block meta_desc %}{{ kos.deskripsi[:160] }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<div style="background:var(--slate-50);padding-top:0;min-height:calc(100vh - 58px);">
+<div class="container" style="padding-top:24px;padding-bottom:48px;">
+
+  <div class="breadcrumb mb-16">
+    <a href="/">Beranda</a><span>›</span>
+    <a href="/kos">Cari Kos</a><span>›</span>
+    <span style="color:var(--slate-700);">{{ kos.nama }}</span>
+  </div>
+
+  <!-- Gallery -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:8px;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;background:var(--slate-200);">
+    <img src="{{ kos.foto[0] }}" alt="{{ kos.nama }}" id="main-img" style="width:100%;height:380px;object-fit:cover;" loading="lazy">
+    <div style="display:grid;gap:8px;">
+      {% for foto in kos.foto[1:3] %}
+      <img src="{{ foto }}" alt="{{ kos.nama }}" style="width:100%;height:186px;object-fit:cover;cursor:pointer;transition:opacity 0.2s;" onclick="document.getElementById('main-img').src=this.src" loading="lazy">
+      {% endfor %}
+      {% if kos.foto|length < 3 %}
+      <div style="background:var(--slate-200);height:186px;display:flex;align-items:center;justify-content:center;color:var(--slate-400);font-size:2rem;">🏠</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+
+    <!-- LEFT -->
+    <div>
+      <!-- Title Row -->
+      <div style="background:white;border:1px solid var(--slate-200);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <span class="badge badge-{{ kos.tipe }}" style="position:static;">{{ kos.tipe.capitalize() }}</span>
+          <span class="avail-badge {% if kos.tersedia %}ok{% else %}no{% endif %}">
+            <i class="fas fa-{% if kos.tersedia %}check{% else %}times{% endif %}-circle"></i>
+            {% if kos.tersedia %}Tersedia{% else %}Penuh{% endif %}
+          </span>
+          <div class="rating" style="margin-left:auto;">
+            <span class="rating-star">⭐</span>
+            <span class="rating-val" style="font-size:0.9rem;">{{ kos.rating }}</span>
+            <span class="rating-cnt">({{ kos.ulasan }} ulasan)</span>
+          </div>
+        </div>
+        <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:6px;">{{ kos.nama }}</h1>
+        <div style="display:flex;align-items:center;gap:5px;color:var(--slate-500);font-size:0.84rem;">
+          <i class="fas fa-map-marker-alt" style="color:var(--blue-600);"></i>{{ kos.alamat }}
+        </div>
+      </div>
+
+      <!-- Info Cards -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+        <div style="text-align:center;padding:14px 10px;background:white;border:1px solid var(--slate-200);border-radius:var(--radius);">
+          <div style="color:var(--blue-600);margin-bottom:5px;font-size:1rem;"><i class="fas fa-vector-square"></i></div>
+          <div style="font-size:0.68rem;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Luas</div>
+          <div style="font-weight:700;font-size:0.84rem;">{{ kos.luas }}</div>
+        </div>
+        <div style="text-align:center;padding:14px 10px;background:white;border:1px solid var(--slate-200);border-radius:var(--radius);">
+          <div style="color:var(--blue-600);margin-bottom:5px;font-size:1rem;"><i class="fas fa-door-open"></i></div>
+          <div style="font-size:0.68rem;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Kamar</div>
+          <div style="font-weight:700;font-size:0.84rem;color:{% if kos.tersedia %}var(--green-600){% else %}var(--red-500){% endif %};">
+            {% if kos.tersedia %}{{ kos.kamar_tersisa }} tersisa{% else %}Penuh{% endif %}
+          </div>
+        </div>
+        <div style="text-align:center;padding:14px 10px;background:white;border:1px solid var(--slate-200);border-radius:var(--radius);">
+          <div style="color:var(--blue-600);margin-bottom:5px;font-size:1rem;"><i class="fas fa-graduation-cap"></i></div>
+          <div style="font-size:0.68rem;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Kampus</div>
+          <div style="font-weight:700;font-size:0.78rem;">{{ kos.jarak_kampus }}</div>
+        </div>
+      </div>
+
+      <!-- Deskripsi -->
+      <div style="background:white;border:1px solid var(--slate-200);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px;">
+        <h2 style="font-size:0.9rem;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px;color:var(--slate-900);"><i class="fas fa-info-circle" style="color:var(--blue-600);"></i> Deskripsi</h2>
+        <p style="color:var(--slate-600);line-height:1.8;font-size:0.84rem;">{{ kos.deskripsi }}</p>
+      </div>
+
+      <!-- Fasilitas -->
+      <div style="background:white;border:1px solid var(--slate-200);border-radius:var(--radius-lg);padding:18px;margin-bottom:14px;">
+        <h2 style="font-size:0.9rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px;"><i class="fas fa-list-check" style="color:var(--blue-600);"></i> Fasilitas</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;">
+          {% for f in kos.fasilitas %}
+          <div style="display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--blue-50);border:1px solid var(--blue-100);border-radius:6px;font-size:0.78rem;color:var(--slate-700);">
+            <i class="fas fa-check-circle" style="color:var(--green-600);font-size:0.7rem;flex-shrink:0;"></i>{{ f }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Peta -->
+      <div style="background:white;border:1px solid var(--slate-200);border-radius:var(--radius-lg);overflow:hidden;">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--slate-200);">
+          <h2 style="font-size:0.9rem;font-weight:700;display:flex;align-items:center;gap:7px;margin:0;"><i class="fas fa-map-marker-alt" style="color:var(--blue-600);"></i> Lokasi</h2>
+        </div>
+        <div id="kos-map" style="height:260px;"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: BOOKING -->
+    <div style="position:sticky;top:74px;">
+      <div class="info-box">
+        <div style="font-size:0.7rem;color:var(--slate-400);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Harga per Bulan</div>
+        <div class="price-display">{{ kos.harga_display }}</div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:16px;font-size:0.82rem;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--slate-500);">Pemilik</span>
+            <span style="font-weight:600;">{{ kos.pemilik }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--slate-500);">Tipe</span>
+            <span style="font-weight:600;">{{ kos.tipe.capitalize() }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--slate-500);">Kecamatan</span>
+            <span style="font-weight:600;">{{ kos.kecamatan }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:var(--slate-500);">Status</span>
+            <span style="font-weight:600;color:{% if kos.tersedia %}var(--green-600){% else %}var(--red-500){% endif %};">
+              {% if kos.tersedia %}Tersedia ({{ kos.kamar_tersisa }} kamar){% else %}Penuh{% endif %}
+            </span>
+          </div>
+        </div>
+
+        {% if kos.tersedia %}
+        <div id="booking-modal">
+          <form id="booking-form" data-kos-id="{{ kos.id }}">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="form-group">
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" id="b-nama" class="form-control" placeholder="Nama Anda" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nomor HP</label>
+                <input type="tel" id="b-hp" class="form-control" placeholder="08xxxxxxxxxx" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tanggal Mulai</label>
+                <input type="date" id="b-tanggal" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Durasi Sewa</label>
+                <select id="b-durasi" class="form-select">
+                  <option value="1">1 Bulan</option>
+                  <option value="3">3 Bulan</option>
+                  <option value="6">6 Bulan</option>
+                  <option value="12">12 Bulan (1 Tahun)</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success btn-block">
+                <i class="fas fa-calendar-check"></i> Konfirmasi Booking
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div id="booking-success" style="display:none;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">✅</div>
+          <div style="font-weight:800;font-size:1rem;margin-bottom:4px;">Booking Berhasil!</div>
+          <div style="font-size:0.75rem;color:var(--slate-500);margin-bottom:4px;">ID Booking:</div>
+          <div style="font-size:1rem;font-weight:800;color:var(--blue-600);font-family:monospace;margin-bottom:16px;" id="booking-id-display"></div>
+
+          <div id="qr-payment-section" class="qr-box mb-16">
+            <div class="qr-label">Scan QR untuk Pembayaran</div>
+            <img id="qr-code-img" src="" alt="QR Payment" class="qr-img" onclick="simulateQrScan()">
+            <div class="qr-amount" id="payment-amount"></div>
+            <div class="qr-note">Scan dengan mobile banking atau e-wallet</div>
+            <button onclick="simulateQrScan()" class="btn btn-primary btn-sm btn-block" style="margin-top:12px;" id="simulate-btn">
+              <i class="fas fa-mobile-alt"></i> Simulasikan Scan QR
+            </button>
+          </div>
+
+          <div id="payment-success" style="display:none;background:var(--green-100);border:1px solid #A7F3D0;border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+            <div style="font-size:1.4rem;margin-bottom:6px;"><i class="fas fa-check-circle" style="color:var(--green-600);"></i></div>
+            <div style="font-weight:700;color:var(--green-600);font-size:0.9rem;">Pembayaran Berhasil!</div>
+            <div style="font-size:0.72rem;color:var(--slate-500);margin-top:4px;">Terima kasih, pembayaran dikonfirmasi.</div>
+          </div>
+
+          <div style="font-size:0.72rem;color:var(--slate-400);">Pemilik akan menghubungi Anda setelah pembayaran dikonfirmasi.</div>
+        </div>
+
+        <div class="divider"></div>
+        <a href="https://wa.me/62{{ kos.no_hp[1:] }}" target="_blank" class="btn btn-ghost btn-block btn-sm">
+          <i class="fab fa-whatsapp" style="color:#25D366;"></i> Hubungi via WhatsApp
+        </a>
+
+        {% else %}
+        <div style="text-align:center;padding:16px;background:var(--red-100);border:1px solid #FECACA;border-radius:var(--radius);margin-bottom:14px;">
+          <div style="font-size:1.6rem;margin-bottom:6px;">😔</div>
+          <div style="font-weight:700;color:var(--red-500);">Kamar Penuh</div>
+          <div style="font-size:0.75rem;color:var(--slate-500);margin-top:4px;">Semua kamar sedang terisi</div>
+        </div>
+        <a href="/chatbot" class="btn btn-primary btn-block">Tanya AI untuk Alternatif</a>
+        {% endif %}
+
+        <div style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--slate-400);justify-content:center;">
+          <i class="fas fa-shield-alt" style="color:var(--green-600);"></i>
+          Terverifikasi oleh KosSemarang.id
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related -->
+  {% if related %}
+  <div style="margin-top:40px;">
+    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:18px;">Kos Lain di <span style="color:var(--blue-600);">{{ kos.kecamatan }}</span></h2>
+    <div class="kos-grid" style="grid-template-columns:repeat(3,1fr);">
+      {% for r in related %}
+      <a href="/kos/{{ r.id }}" class="kos-card">
+        <div class="kos-img-wrap">
+          <img src="{{ r.foto_utama }}" alt="{{ r.nama }}" class="kos-img" loading="lazy" style="height:150px;">
+          <span class="badge badge-{{ r.tipe }}">{{ r.tipe.capitalize() }}</span>
+        </div>
+        <div class="kos-body">
+          <div class="kos-name">{{ r.nama }}</div>
+          <div class="kos-price">{{ r.harga_display }}</div>
+          <div class="kos-footer">
+            <div class="rating"><span class="rating-star">⭐</span><span class="rating-val">{{ r.rating }}</span></div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('kos-map').setView([{{ kos.lat }}, {{ kos.lng }}], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap', maxZoom:19 }).addTo(map);
+  const icon = L.divIcon({
+    html: `<div style="background:#0064D2;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,100,210,0.4);border:2px solid white;"><span style="transform:rotate(45deg);font-size:0.8rem;">🏠</span></div>`,
+    className:'', iconSize:[34,34], iconAnchor:[17,34]
+  });
+  L.marker([{{ kos.lat }}, {{ kos.lng }}], {icon}).addTo(map)
+    .bindPopup(`<div style="font-family:Inter,sans-serif;padding:4px;"><div style="font-weight:700;margin-bottom:3px;">{{ kos.nama }}</div><div style="font-size:0.75rem;color:#666;">{{ kos.alamat }}</div><div style="font-weight:800;color:#0064D2;margin-top:4px;">{{ kos.harga_display }}</div></div>`, {maxWidth:220})
+    .openPopup();
+  document.getElementById('b-tanggal')?.setAttribute('min', new Date().toISOString().split('T')[0]);
+  function simulateQrScan() {
+    const btn = document.getElementById('simulate-btn');
+    if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memverifikasi…'; btn.disabled = true; }
+    setTimeout(() => {
+      document.getElementById('qr-payment-section').style.display = 'none';
+      document.getElementById('payment-success').style.display = 'block';
+      if (typeof showToast === 'function') showToast('Pembayaran berhasil dikonfirmasi! 🎉');
+      if (window.chatbot) window.chatbot.addMessage('✅ Pembayaran kos **{{ kos.nama }}** berhasil dikonfirmasi! Pemilik kos akan segera menghubungi Anda.', 'bot');
+    }, 1600);
+  }
+</script>
+{% endblock %}

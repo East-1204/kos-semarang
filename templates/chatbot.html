@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Kosi AI — Asisten Kos KosSemarang.id{% endblock %}
+{% block meta_desc %}Tanya Kosi, asisten AI untuk menemukan kos terbaik di Semarang.{% endblock %}
+
+{% block content %}
+<div class="chat-page-layout">
+
+  <!-- Sidebar -->
+  <aside class="chat-sidebar">
+    <div class="chat-sidebar-header">
+      <h3>🤖 Kosi — Asisten Kos</h3>
+      <p>Platform Kos #1 Semarang</p>
+      <div class="chat-sidebar-status">
+        <span class="status-dot"></span> Online — siap membantu
+      </div>
+    </div>
+    <div class="chat-quick-list">
+      <div class="chat-quick-title">Pertanyaan Populer</div>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('Kos murah di Tembalang')">
+        <i class="fas fa-tag"></i> Kos murah di Tembalang
+      </button>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('Kos putri tersedia')">
+        <i class="fas fa-female"></i> Kos putri tersedia
+      </button>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('Kos putra dekat UNDIP')">
+        <i class="fas fa-male"></i> Kos putra dekat UNDIP
+      </button>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('mau survei kos')">
+        <i class="fas fa-calendar-check"></i> Jadwalkan survei kos
+      </button>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('Berapa harga kos di Semarang?')">
+        <i class="fas fa-money-bill-wave"></i> Info harga kos
+      </button>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('Tips memilih kos yang baik')">
+        <i class="fas fa-lightbulb"></i> Tips memilih kos
+      </button>
+      <button class="chat-quick-btn" onclick="window.chatbot && window.chatbot.sendDirect('Kos campur di Semarang Tengah')">
+        <i class="fas fa-users"></i> Kos campur tersedia
+      </button>
+
+      <div class="chat-quick-title" style="margin-top:16px;">Tautan Cepat</div>
+      <a href="/kos" class="chat-quick-btn" style="text-decoration:none;"><i class="fas fa-search"></i> Cari Kos Manual</a>
+      <a href="/lokasi" class="chat-quick-btn" style="text-decoration:none;"><i class="fas fa-map-marked-alt"></i> Lihat Peta</a>
+      <a href="/contact" class="chat-quick-btn" style="text-decoration:none;"><i class="fas fa-headset"></i> Hubungi Support</a>
+    </div>
+  </aside>
+
+  <!-- Chat Main -->
+  <div class="chat-main">
+    <div class="chat-main-header">
+      <div class="chat-avatar-lg">🤖</div>
+      <div>
+        <h4>Kosi — Asisten Kos AI</h4>
+        <p>Tanya apa saja tentang kos di Semarang</p>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;">
+        <a href="/kos" class="btn btn-ghost btn-sm"><i class="fas fa-search"></i> Cari Kos</a>
+      </div>
+    </div>
+
+    <div id="chat-main-messages"></div>
+
+    <div class="chat-input-area">
+      <textarea id="chat-main-input" placeholder="Tanya Kosi: 'kos murah dekat UNDIP' atau 'mau survei kos'…" rows="1"></textarea>
+      <button id="chat-main-send" aria-label="Kirim">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

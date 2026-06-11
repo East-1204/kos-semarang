@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Lokasi{% endblock %}
+{% block meta_description %}Jelajahi peta lokasi kos di seluruh area Semarang. Temukan kos terdekat dengan kampus, kantor, atau tempat strategis lainnya.{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header page-header-compact animate-on-scroll" id="locationHeader">
+    <div class="container">
+        <div class="page-header-content">
+            <h1 class="page-title">Peta <span class="gradient-text">Lokasi Kos</span></h1>
+            <p class="page-subtitle">Jelajahi seluruh lokasi kos di Semarang melalui peta interaktif</p>
+        </div>
+    </div>
+</section>
+
+<!-- Map Layout -->
+<section class="map-section" id="mapSection">
+    <div class="map-layout">
+        <!-- Sidebar -->
+        <aside class="map-sidebar" id="mapSidebar">
+            <div class="map-sidebar-header">
+                <h3>
+                    <i data-lucide="map-pin"></i>
+                    Area di Semarang
+                </h3>
+                <button class="btn-icon map-sidebar-close" id="btnCloseSidebar" onclick="toggleMapSidebar()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="map-sidebar-search">
+                <div class="filter-input-wrapper">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="areaSearchInput" placeholder="Cari area..." oninput="filterAreas(this.value)">
+                </div>
+            </div>
+
+            <div class="map-sidebar-list" id="areaSidebarList">
+                {% set area_coords = {
+                    'Tembalang': {'lat': -7.0548, 'lng': 110.4394},
+                    'Banyumanik': {'lat': -7.0472, 'lng': 110.4183},
+                    'Pedurungan': {'lat': -6.9883, 'lng': 110.4538},
+                    'Ngaliyan': {'lat': -6.9934, 'lng': 110.3485},
+                    'Semarang Tengah': {'lat': -6.9820, 'lng': 110.4203},
+                    'Semarang Selatan': {'lat': -6.9999, 'lng': 110.4160},
+                    'Semarang Barat': {'lat': -6.9718, 'lng': 110.3783},
+                    'Semarang Timur': {'lat': -6.9830, 'lng': 110.4410},
+                    'Semarang Utara': {'lat': -6.9580, 'lng': 110.4267},
+                    'Gajahmungkur': {'lat': -7.0200, 'lng': 110.4060},
+                    'Candisari': {'lat': -7.0100, 'lng': 110.4200},
+                    'Gunungpati': {'lat': -7.0700, 'lng': 110.3850},
+                    'Mijen': {'lat': -7.0600, 'lng': 110.3200},
+                    'Genuk': {'lat': -6.9600, 'lng': 110.4650},
+                    'Gayamsari': {'lat': -6.9870, 'lng': 110.4420},
+                    'Tugu': {'lat': -6.9650, 'lng': 110.3300}
+                } %}
+
+                {% set areas_grouped = {} %}
+                {% for kos in kos_list %}
+                    {% if kos.kecamatan not in areas_grouped %}
+                        {% if areas_grouped.update({kos.kecamatan: []}) %}{% endif %}
+                    {% endif %}
+                    {% if areas_grouped[kos.kecamatan].append(kos) %}{% endif %}
+                {% endfor %}
+
+                {% for area_name, area_kos_list in areas_grouped.items() %}
+                <div class="area-sidebar-card" id="areaSidebar{{ loop.index }}" 
+                     data-area="{{ area_name }}"
+                     onclick="flyToArea('{{ area_name }}', {{ (area_coords[area_name].lat if area_name in area_coords else -6.9667) }}, {{ (area_coords[area_name].lng if area_name in area_coords else 110.4196) }})">
+                    <div class="area-sidebar-icon">
+                        <i data-lucide="map-pin"></i>
+                    </div>
+                    <div class="area-sidebar-info">
+                        <h4>{{ area_name }}</h4>
+                        <span>{{ area_kos_list|length }} kos tersedia</span>
+                    </div>
+                    <div class="area-sidebar-arrow">
+                        <i data-lucide="chevron-right"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <div class="map-container-wrapper" id="mapContainerWrapper">
+            <button class="btn btn-outline map-sidebar-toggle" id="btnToggleSidebar" onclick="toggleMapSidebar()">
+                <i data-lucide="menu"></i>
+                Area
+            </button>
+            <div id="mapContainer" class="map-container"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Hidden data for JS -->
+<script id="kosData" type="application/json">
+{{ kos_list | tojson }}
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script>
+    function toggleMapSidebar() {
+        const sidebar = document.getElementById('mapSidebar');
+        sidebar.classList.toggle('active');
+    }
+
+    function filterAreas(query) {
+        const cards = document.querySelectorAll('.area-sidebar-card');
+        const q = query.toLowerCase();
+        cards.forEach(card => {
+            const name = card.dataset.area.toLowerCase();
+            card.style.display = name.includes(q) ? '' : 'none';
+        });
+    }
+
+    function flyToArea(name, lat, lng) {
+        if (window.kosMap) {
+            window.kosMap.flyTo([lat, lng], 14, { duration: 1.5 });
+        }
+        // Highlight active card
+        document.querySelectorAll('.area-sidebar-card').forEach(c => c.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        
+        // Close sidebar on mobile
+        if (window.innerWidth < 768) {
+            toggleMapSidebar();
+        }
+    }
+</script>
+{% endblock %}

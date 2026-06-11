@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}404 — Halaman Tidak Ditemukan{% endblock %}
+
+{% block content %}
+<section style="min-height:80vh;display:flex;align-items:center;justify-content:center;background:var(--slate-50);">
+  <div class="container" style="text-align:center;">
+    <div style="font-size:4.5rem;margin-bottom:14px;">🏚️</div>
+    <h1 style="font-size:4rem;font-weight:800;color:var(--blue-600);margin-bottom:8px;font-family:var(--font-display);">404</h1>
+    <h2 style="font-size:1.2rem;margin-bottom:8px;color:var(--slate-800);">Halaman Tidak Ditemukan</h2>
+    <p style="color:var(--slate-500);max-width:400px;margin:0 auto 24px;font-size:0.875rem;line-height:1.7;">
+      Maaf, halaman yang Anda cari tidak tersedia. URL mungkin salah atau halaman telah dipindahkan.
+    </p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <a href="/" class="btn btn-primary"><i class="fas fa-home"></i> Beranda</a>
+      <a href="/kos" class="btn btn-ghost"><i class="fas fa-search"></i> Cari Kos</a>
+      <a href="/chatbot" class="btn btn-ghost"><i class="fas fa-robot"></i> Tanya Kosi</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

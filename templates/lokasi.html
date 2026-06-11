@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Peta Kos Semarang — KosSemarang.id{% endblock %}
+{% block meta_desc %}Temukan semua kos di Semarang dalam peta interaktif.{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="/">Beranda</a><span>›</span><span>Peta Lokasi</span></div>
+    <h1 class="page-title">Peta Kos <span>Semarang</span></h1>
+    <p class="page-sub">Semua kos dalam satu peta interaktif — klik marker untuk detail.</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:48px;">
+  <div class="map-filter-bar mb-16">
+    <button class="map-filter-btn active" onclick="filterMap('all', this)">🗺️ Semua</button>
+    <button class="map-filter-btn" onclick="filterMap('putra', this)">👨 Putra</button>
+    <button class="map-filter-btn" onclick="filterMap('putri', this)">👩 Putri</button>
+    <button class="map-filter-btn" onclick="filterMap('campur', this)">👫 Campur</button>
+    <button class="map-filter-btn" onclick="filterMap('tersedia', this)">✅ Tersedia</button>
+    <div style="margin-left:auto;font-size:0.78rem;color:var(--slate-500);">Tampil: <strong id="map-count">{{ kos_json|length if kos_json else 0 }}</strong> kos</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start;">
+    <div>
+      <div id="map"></div>
+      <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;padding:10px 14px;background:white;border:1px solid var(--slate-200);border-radius:var(--radius);font-size:0.75rem;">
+        <div style="display:flex;align-items:center;gap:5px;color:var(--slate-500);">
+          <div style="width:11px;height:11px;background:#0064D2;border-radius:50%;"></div>Putra
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;color:var(--slate-500);">
+          <div style="width:11px;height:11px;background:#DB2777;border-radius:50%;"></div>Putri
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;color:var(--slate-500);">
+          <div style="width:11px;height:11px;background:#0A9E5C;border-radius:50%;"></div>Campur
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;color:var(--slate-500);">
+          <div style="width:11px;height:11px;background:#E03131;border-radius:50%;"></div>Penuh
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:0.84rem;margin-bottom:10px;color:var(--slate-800);">📍 Daftar Kos</div>
+      <div class="kos-list-sidebar" id="kos-sidebar"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const KOS_DATA = {{ kos_json | safe }};
+  const map = L.map('map').setView([-7.0051, 110.4381], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'© OpenStreetMap', maxZoom:19 }).addTo(map);
+  const colors = { putra:'#0064D2', putri:'#DB2777', campur:'#0A9E5C' };
+  const markers = {};
+  function createMarker(kos) {
+    const c = kos.tersedia ? (colors[kos.tipe] || '#0064D2') : '#E03131';
+    const icon = L.divIcon({
+      html: `<div style="background:${c};width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.22);border:2px solid white;"><span style="transform:rotate(45deg);font-size:0.75rem;">🏠</span></div>`,
+      className:'', iconSize:[32,32], iconAnchor:[16,32], popupAnchor:[0,-32]
+    });
+    const m = L.marker([kos.lat, kos.lng], {icon}).addTo(map).bindPopup(`
+      <div style="font-family:Inter,sans-serif;padding:4px;min-width:190px;">
+        <div class="popup-name">${kos.nama}</div>
+        <div class="popup-addr">📍 ${kos.alamat}</div>
+        <div class="popup-price">${kos.harga_display}</div>
+        <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+          <span style="padding:2px 7px;background:${c}22;color:${c};border-radius:4px;font-size:0.65rem;font-weight:700;">${kos.tipe.charAt(0).toUpperCase()+kos.tipe.slice(1)}</span>
+          <span style="padding:2px 7px;background:${kos.tersedia?'#D6F5E8':'#FFE3E3'};color:${kos.tersedia?'#0A9E5C':'#E03131'};border-radius:4px;font-size:0.65rem;font-weight:700;">${kos.tersedia?'✅ Tersedia':'❌ Penuh'}</span>
+        </div>
+        <a class="popup-link" href="/kos/${kos.id}">Lihat Detail & Booking →</a>
+      </div>
+    `, {maxWidth:230});
+    markers[kos.id] = {marker:m, kos};
+    return m;
+  }
+  KOS_DATA.forEach(k => createMarker(k));
+  function renderSidebar(data) {
+    document.getElementById('kos-sidebar').innerHTML = data.map(k => `
+      <div class="kos-list-item" onclick="focusKos(${k.id})" id="si-${k.id}">
+        <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;color:var(--slate-900);">${k.nama}</div>
+        <div style="font-size:0.7rem;color:var(--slate-400);margin-bottom:6px;">📍 ${k.kecamatan}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:800;color:var(--blue-600);font-size:0.82rem;">${k.harga_display}</span>
+          <span style="font-size:0.68rem;font-weight:600;color:${k.tersedia?'var(--green-600)':'var(--red-500)'};">${k.tersedia?'✅ '+k.kamar_tersisa+' kamar':'❌ Penuh'}</span>
+        </div>
+      </div>`).join('');
+  }
+  renderSidebar(KOS_DATA);
+  function focusKos(id) {
+    const {marker, kos} = markers[id];
+    map.setView([kos.lat, kos.lng], 16);
+    marker.openPopup();
+    document.querySelectorAll('.kos-list-item').forEach(e => e.classList.remove('active'));
+    document.getElementById('si-'+id)?.classList.add('active');
+  }
+  function filterMap(type, btn) {
+    document.querySelectorAll('.map-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    let filtered = KOS_DATA;
+    if (type === 'tersedia') filtered = KOS_DATA.filter(k => k.tersedia);
+    else if (type !== 'all') filtered = KOS_DATA.filter(k => k.tipe === type);
+    Object.values(markers).forEach(({marker, kos}) => {
+      const show = type === 'all' || (type === 'tersedia' ? kos.tersedia : kos.tipe === type);
+      show ? map.addLayer(marker) : map.removeLayer(marker);
+    });
+    document.getElementById('map-count').textContent = filtered.length;
+    renderSidebar(filtered);
+  }
+</script>
+{% endblock %}

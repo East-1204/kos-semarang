@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_desc %}KosSemarang.id — Platform pencarian kos terpercaya di Semarang.{% endblock %}">
+  <title>{% block title %}KosSemarang.id — Cari Kos di Semarang{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230064D2'/><text y='.9em' font-size='70' x='13'>🏠</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=202606112">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Top Bar -->
+{% if request.path != '/chatbot' %}
+<div class="topbar">
+  <div class="container topbar-inner">
+    <div class="topbar-left">
+      <span><i class="fas fa-map-marker-alt"></i> Semarang, Jawa Tengah</span>
+      <span><i class="fas fa-phone"></i> (024) 1234-567</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/about">Tentang Kami</a>
+      <a href="/contact">Bantuan</a>
+      <a href="/contact"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Navbar -->
+<nav class="navbar" id="navbar">
+  <div class="container navbar-inner">
+    <a href="/" class="brand">
+      <div class="brand-mark">🏠</div>
+      <span>Kos<span>Semarang</span>.id</span>
+    </a>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/">Beranda</a></li>
+      <li><a href="/kos">Cari Kos</a></li>
+      <li><a href="/lokasi">Peta Lokasi</a></li>
+      <li><a href="/about">Tentang</a></li>
+      <li><a href="/contact">Kontak</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <a href="/chatbot" class="btn-chat-nav">
+        <i class="fas fa-robot"></i>
+        <span>Tanya Kosi</span>
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+{# FAB Chatbot #}
+{% if request.path != '/chatbot' %}
+<div class="chat-fab-wrapper">
+  <div class="chat-window" id="chat-window">
+    <div class="chat-win-header">
+      <div class="chat-win-hinfo">
+        <div class="chat-avatar">🤖</div>
+        <div>
+          <div class="chat-win-name">Kosi — Asisten Kos</div>
+          <div class="chat-win-status"><span class="status-dot"></span> Online sekarang</div>
+        </div>
+      </div>
+      <button class="chat-win-close" id="chat-win-close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chat-win-msgs" id="chat-win-msgs"></div>
+    <div class="chat-quick-row">
+      <span class="quick-chip">Kos murah</span>
+      <span class="quick-chip">Dekat UNDIP</span>
+      <span class="quick-chip">Survei kos</span>
+    </div>
+    <div class="chat-win-input">
+      <textarea class="chat-textarea" id="chat-win-input" rows="1" placeholder="Tanya soal kos…"></textarea>
+      <button class="chat-send-btn" id="chat-win-send"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+  <button class="chat-fab" id="chat-fab" aria-label="Buka chat">
+    <div class="pulse"></div>
+    <i class="fas fa-robot"></i>
+  </button>
+</div>
+{% endif %}
+
+{% if request.path != '/chatbot' %}
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <div class="footer-brand-mark">🏠</div>
+          <span class="footer-brand-text">Kos<span>Semarang</span>.id</span>
+        </div>
+        <p class="footer-desc">Platform pencarian kos terpercaya di Semarang. Temukan hunian sesuai budget dan kebutuhan Anda dengan mudah.</p>
+        <div class="social-row">
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Layanan</div>
+        <ul class="footer-links">
+          <li><a href="/kos">Cari Kos</a></li>
+          <li><a href="/kos?tipe=putra">Kos Putra</a></li>
+          <li><a href="/kos?tipe=putri">Kos Putri</a></li>
+          <li><a href="/kos?tipe=campur">Kos Campur</a></li>
+          <li><a href="/chatbot">Chat AI</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-heading">Lokasi</div>
+        <ul class="footer-links">
+          <li><a href="/kos?kecamatan=Tembalang">Tembalang</a></li>
+          <li><a href="/kos?kecamatan=Banyumanik">Banyumanik</a></li>
+          <li><a href="/kos?kecamatan=Semarang+Tengah">Semarang Tengah</a></li>
+          <li><a href="/kos?kecamatan=Semarang+Selatan">Semarang Selatan</a></li>
+          <li><a href="/lokasi">Peta Lokasi</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-heading">Informasi</div>
+        <ul class="footer-links">
+          <li><a href="/about">Tentang Kami</a></li>
+          <li><a href="/contact">Kontak</a></li>
+          <li><a href="/contact#faq">FAQ</a></li>
+          <li><a href="#">Syarat & Ketentuan</a></li>
+          <li><a href="#">Kebijakan Privasi</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 KosSemarang.id — Dibuat untuk warga Semarang</div>
+      <div>Powered by <span style="color:#60A5FA;">Python Flask</span></div>
+    </div>
+  </div>
+</footer>
+{% endif %}
+
+<div class="toast-container" id="toast-container"></div>
+<script src="{{ url_for('static', filename='js/main.js') }}?v=202606112"></script>
+<script src="{{ url_for('static', filename='js/chatbot.js') }}?v=202606112"></script>
+{% block extra_scripts %}{% endblock %}
+<script>
+  const p = window.location.pathname;
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    const h = a.getAttribute('href');
+    if (h === p || (p.startsWith('/kos') && h === '/kos')) a.classList.add('active');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Tentang Kami — KosSemarang.id{% endblock %}
+{% block meta_desc %}Tentang KosSemarang.id — Platform pencarian kos terpercaya di Semarang.{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="/">Beranda</a><span>›</span><span>Tentang Kami</span></div>
+    <h1 class="page-title">Tentang <span>KosSemarang.id</span></h1>
+    <p class="page-sub">Platform pencarian kos terpercaya dan terlengkap di Kota Semarang</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:48px;">
+
+  <!-- Misi Visi -->
+  <section class="section-sm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;" data-aos>
+      <div>
+        <div class="section-eyebrow">Misi & Visi</div>
+        <h2 class="section-title">Menghubungkan Pencari Kos di Semarang</h2>
+        <p style="color:var(--slate-500);line-height:1.8;margin-bottom:20px;font-size:0.875rem;">
+          KosSemarang.id lahir dari kebutuhan nyata mahasiswa dan pekerja yang kesulitan menemukan kos di Semarang. Kami menyederhanakan pencarian dengan teknologi yang mudah digunakan.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:36px;height:36px;background:var(--blue-50);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;border:1px solid var(--blue-100);">🎯</div>
+            <div>
+              <div style="font-weight:700;font-size:0.84rem;margin-bottom:3px;">Misi</div>
+              <div style="font-size:0.8rem;color:var(--slate-500);line-height:1.7;">Menyediakan platform pencarian kos yang mudah, akurat, dan terpercaya untuk seluruh warga Semarang.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:36px;height:36px;background:var(--blue-50);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;border:1px solid var(--blue-100);">🔭</div>
+            <div>
+              <div style="font-weight:700;font-size:0.84rem;margin-bottom:3px;">Visi</div>
+              <div style="font-size:0.8rem;color:var(--slate-500);line-height:1.7;">Menjadi platform properti kos nomor 1 di Jawa Tengah dengan teknologi terdepan.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        {% for val, icon, lbl in [('2022','🚀','Didirikan'),('500+','🏠','Kos Terdaftar'),('2500+','👥','Pengguna'),('4.8','⭐','Rata-rata Rating')] %}
+        <div style="text-align:center;padding:20px 14px;border:1px solid var(--slate-200);border-radius:var(--radius-lg);background:white;">
+          <div style="font-size:1.3rem;margin-bottom:6px;">{{ icon }}</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--blue-600);font-family:var(--font-display);">{{ val }}</div>
+          <div style="font-size:0.7rem;color:var(--slate-400);margin-top:3px;">{{ lbl }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Timeline -->
+  <section class="section-sm" data-aos>
+    <div class="section-eyebrow">Perjalanan</div>
+    <h2 class="section-title" style="margin-bottom:24px;">Sejarah KosSemarang.id</h2>
+    <div style="max-width:580px;">
+      {% for year, icon, title, desc in [('2022','🌱','Awal Mula','KosSemarang.id didirikan oleh mahasiswa UNDIP yang frustasi mencari kos. Dimulai dengan 20 kos terdaftar.'),('2023','📈','Berkembang','Lebih dari 200 pemilik kos bergabung dan 1000+ pengguna aktif. Peta interaktif diluncurkan.'),('2024','🤖','Era AI','Integrasi chatbot AI untuk pengalaman pencarian personal. Booking via chat tersedia!'),('2025+','🚀','Ekspansi','Target ekspansi ke seluruh Jawa Tengah dengan fitur-fitur premium baru.')] %}
+      <div style="display:flex;gap:18px;padding-bottom:24px;position:relative;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0;flex-shrink:0;">
+          <div style="width:38px;height:38px;background:var(--blue-600);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.95rem;color:white;">{{ icon }}</div>
+          {% if not loop.last %}<div style="width:2px;flex:1;background:var(--slate-200);margin-top:6px;min-height:28px;"></div>{% endif %}
+        </div>
+        <div style="padding-top:7px;">
+          <div style="font-size:0.7rem;color:var(--blue-600);font-weight:700;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.06em;">{{ year }}</div>
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:4px;">{{ title }}</div>
+          <div style="font-size:0.8rem;color:var(--slate-500);line-height:1.7;">{{ desc }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Tim -->
+  <section class="section-sm">
+    <div class="section-eyebrow" data-aos>Tim Kami</div>
+    <h2 class="section-title mb-24" data-aos>Orang-orang di Balik KosSemarang.id</h2>
+    <div class="team-grid">
+      {% for name, role, emoji, bio in [('Dani','CEO & Founder','👨‍💼','Mahasiswa UPGRIS yang ingin memudahkan pencarian kos di Semarang.'),('Alivia','CTO & AI Engineer','👩‍💻','Ahli AI dan backend yang membangun chatbot dan sistem platform.'),('Roy Yogi','Head of Operations','👨‍🔧','Mengkoordinasikan verifikasi kos dan hubungan dengan pemilik kos.')] %}
+      <div class="team-card" data-aos data-delay="{{ loop.index0*80 }}">
+        <div class="team-emoji">{{ emoji }}</div>
+        <div class="team-name">{{ name }}</div>
+        <div class="team-role">{{ role }}</div>
+        <div class="team-bio">{{ bio }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-sm" data-aos>
+    <div style="background:linear-gradient(135deg,var(--blue-700),var(--blue-600));border-radius:var(--radius-xl);padding:44px;text-align:center;color:white;">
+      <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:10px;color:white;">Punya Kos di Semarang?</h2>
+      <p style="opacity:0.85;margin-bottom:24px;max-width:420px;margin-left:auto;margin-right:auto;font-size:0.875rem;">Daftarkan kos Anda dan jangkau ribuan pencari kos setiap harinya!</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="/contact" class="btn btn-lg" style="background:white;color:var(--blue-600);font-weight:700;"><i class="fas fa-home"></i> Daftarkan Kos</a>
+        <a href="/kos" class="btn btn-lg" style="border:1.5px solid rgba(255,255,255,0.4);color:white;background:transparent;">Lihat Kos</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

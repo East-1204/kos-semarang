@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Kontak & Support — KosSemarang.id{% endblock %}
+{% block meta_desc %}Hubungi tim KosSemarang.id untuk bantuan, pertanyaan, atau kemitraan.{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb"><a href="/">Beranda</a><span>›</span><span>Kontak</span></div>
+    <h1 class="page-title">Kontak & <span>Support</span></h1>
+    <p class="page-sub">Kami siap membantu Anda. Pilih channel yang paling sesuai.</p>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Contact Cards -->
+  <section class="section-sm">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;" data-aos>
+      <div class="contact-card">
+        <div class="contact-icon" style="background:linear-gradient(135deg,#25D366,#128C7E);"><i class="fab fa-whatsapp"></i></div>
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:3px;">WhatsApp</div>
+          <div style="font-size:0.75rem;color:var(--slate-400);margin-bottom:6px;">Respons dalam hitungan menit</div>
+          <a href="https://wa.me/6281234567890" target="_blank" style="color:var(--green-500);font-weight:600;font-size:0.875rem;">+62 812-3456-7890</a>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon" style="background:linear-gradient(135deg,#EA4335,#FBBC05);"><i class="fas fa-envelope"></i></div>
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:3px;">Email</div>
+          <div style="font-size:0.75rem;color:var(--slate-400);margin-bottom:6px;">Dibalas dalam 1×24 jam</div>
+          <a href="mailto:halo@kossemarang.id" style="color:var(--blue-600);font-weight:600;font-size:0.875rem;">halo@kossemarang.id</a>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon" style="background:var(--blue-600);"><i class="fas fa-phone"></i></div>
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:3px;">Telepon</div>
+          <div style="font-size:0.75rem;color:var(--slate-400);margin-bottom:6px;">Senin–Sabtu 08.00–20.00 WIB</div>
+          <a href="tel:+622441234567" style="color:var(--blue-600);font-weight:600;font-size:0.875rem;">(024) 1234-567</a>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="contact-icon" style="background:linear-gradient(135deg,#FF6B6B,#FF9F1C);"><i class="fas fa-map-marker-alt"></i></div>
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:3px;">Kantor</div>
+          <div style="font-size:0.75rem;color:var(--slate-400);margin-bottom:6px;">Kunjungi kami langsung</div>
+          <div style="font-size:0.82rem;color:var(--slate-600);">Jl. Diponegoro No. 1, Pleburan, Semarang</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Form + Sidebar -->
+  <section class="section-sm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:36px;" data-aos>
+
+      <div>
+        <div class="section-eyebrow">Kirim Pesan</div>
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:6px;">Ada Pertanyaan?</h2>
+        <p style="color:var(--slate-500);font-size:0.875rem;margin-bottom:24px;">Isi form ini dan tim kami akan segera merespons.</p>
+        <form id="contact-form" style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group">
+              <label class="form-label">Nama Lengkap</label>
+              <input type="text" id="c-nama" class="form-control" placeholder="Nama Anda" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" id="c-email" class="form-control" placeholder="email@anda.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor HP</label>
+            <input type="tel" id="c-hp" class="form-control" placeholder="08xxxxxxxxxx">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subjek</label>
+            <select id="c-subjek" class="form-select" required>
+              <option value="">Pilih Subjek</option>
+              <option>Pertanyaan Tentang Kos</option>
+              <option>Daftarkan Kos Saya</option>
+              <option>Masalah Booking</option>
+              <option>Kemitraan</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pesan</label>
+            <textarea id="c-pesan" class="form-control" rows="5" placeholder="Tuliskan pesan Anda…" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim Pesan</button>
+        </form>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="background:var(--blue-600);border-radius:var(--radius-lg);padding:24px;text-align:center;color:white;">
+          <div style="font-size:2rem;margin-bottom:10px;">🤖</div>
+          <div style="font-weight:800;font-size:1rem;margin-bottom:7px;">Butuh Jawaban Cepat?</div>
+          <p style="opacity:0.85;font-size:0.82rem;margin-bottom:18px;line-height:1.6;">Tanya Kosi AI — siap menjawab 24 jam sehari.</p>
+          <a href="/chatbot" class="btn btn-lg" style="background:white;color:var(--blue-600);">
+            <i class="fas fa-robot"></i> Chat Kosi AI
+          </a>
+        </div>
+
+        <div style="border:1px solid var(--slate-200);border-radius:var(--radius-lg);padding:20px;background:white;">
+          <div style="font-weight:700;font-size:0.875rem;margin-bottom:14px;display:flex;align-items:center;gap:7px;">
+            <i class="fas fa-clock" style="color:var(--blue-600);"></i> Jam Operasional
+          </div>
+          {% for day, time, ok in [('Senin – Jumat','08:00 – 20:00 WIB',True),('Sabtu','09:00 – 17:00 WIB',True),('Minggu','Tutup',False),('AI Chatbot','24 Jam / 7 Hari',True)] %}
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:8px 0;border-bottom:1px solid var(--slate-100);">
+            <span style="color:var(--slate-500);">{{ day }}</span>
+            <span style="font-weight:600;color:{% if ok %}var(--green-500){% else %}var(--red-500){% endif %};">{{ time }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section-sm" id="faq">
+    <div class="section-eyebrow" data-aos>FAQ</div>
+    <h2 class="section-title mb-24" data-aos>Pertanyaan yang Sering Ditanyakan</h2>
+    <div style="max-width:720px;" data-aos>
+      {% set faqs = [
+        ('Bagaimana cara mencari kos?','Gunakan fitur pencarian di beranda dengan filter lokasi, harga, dan tipe. Atau tanya langsung ke Kosi AI chatbot kami.'),
+        ('Apakah data kos akurat?','Ya! Semua kos telah diverifikasi oleh tim kami secara berkala.'),
+        ('Bagaimana proses booking?','Temukan kos, klik Konfirmasi Booking, isi data, dan pemilik akan menghubungi Anda dalam 1×24 jam.'),
+        ('Apakah ada biaya layanan?','KosSemarang.id GRATIS untuk pencari kos!'),
+        ('Bagaimana mendaftarkan kos?','Hubungi kami via WhatsApp atau email. Tim kami proses dalam 2-3 hari kerja.'),
+        ('Apa itu survei kos di chatbot?','Fitur survei kos di chatbot membantu Anda menjadwalkan kunjungan langsung ke kos yang diminati, sehingga Anda bisa melihat kondisi nyatanya sebelum booking.')
+      ] %}
+      {% for q, a in faqs %}
+      <div class="faq-item">
+        <button class="faq-q">
+          <span>{{ q }}</span>
+          <i class="fas fa-chevron-down faq-icon"></i>
+        </button>
+        <div class="faq-a">{{ a }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}
