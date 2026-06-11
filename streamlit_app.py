@@ -15,13 +15,20 @@ from data.kos_data import KOS_DATA, KECAMATAN_LIST, FASILITAS_LIST
 
 # Page Config
 st.set_page_config(
-    page_title="KosSemarang.id - Cari Kos di Semarang",
+    page_title="KosSemarang.id - Cari Kos Terbaik di Semarang",
     page_icon="🏠",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Force hiding the sidebar and customizing default streamlit UI elements
+# ─── NAVIGATION (Query Params) ────────────────────────────────────────────────
+query_params = st.query_params
+if "nav" in query_params:
+    st.session_state.page = query_params["nav"]
+else:
+    st.session_state.page = "Beranda"
+
+# ─── CUSTOM CSS FOR 100% VISUAL MATCH ─────────────────────────────────────────
 st.markdown("""
 <style>
     /* Hide Streamlit sidebar and adjust top padding */
@@ -51,7 +58,59 @@ st.markdown("""
         margin: 0 auto;
     }
     
-    /* Cards */
+    /* Custom selectbox styling matching Flask */
+    div[data-testid="stSelectbox"] label {
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        margin-bottom: 6px !important;
+    }
+    div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+        border: 1px solid #D1D5DB !important;
+        border-radius: 6px !important;
+        background-color: #FFFFFF !important;
+        font-size: 0.92rem !important;
+        height: 42px !important;
+    }
+    
+    /* Custom button styling */
+    div[data-testid="stButton"] button {
+        border-radius: 6px !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        height: 42px !important;
+    }
+    
+    /* Blue Search Button */
+    div[element-id="btn_search_submit"] button {
+        background-color: #2563EB !important;
+        color: white !important;
+        border: none !important;
+        font-size: 0.95rem !important;
+        transition: background-color 0.2s !important;
+    }
+    div[element-id="btn_search_submit"] button:hover {
+        background-color: #1D4ED8 !important;
+    }
+    
+    /* Popular Tags Styling */
+    div[element-id^="tag_"] button {
+        background-color: #EFF6FF !important;
+        color: #2563EB !important;
+        border: 1px solid #DBEAFE !important;
+        border-radius: 20px !important;
+        font-size: 0.8rem !important;
+        height: 30px !important;
+        padding: 0 14px !important;
+        font-weight: 500 !important;
+    }
+    div[element-id^="tag_"] button:hover {
+        background-color: #DBEAFE !important;
+        color: #1D4ED8 !important;
+        border-color: #BFDBFE !important;
+    }
+    
+    /* Kos Cards */
     .kos-card {
         background-color: #FFFFFF;
         border: 1px solid #E5E7EB;
@@ -60,7 +119,6 @@ st.markdown("""
         margin-bottom: 20px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         font-family: 'Inter', sans-serif;
-        transition: transform 0.2s;
     }
     .badge-putri {
         background-color: #FDF2F8;
@@ -95,8 +153,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─── Initialize State ────────────────────────────────────────────────────────
-if "page" not in st.session_state:
-    st.session_state.page = "Beranda"
 if "selected_kos_id" not in st.session_state:
     st.session_state.selected_kos_id = None
 if "messages" not in st.session_state:
@@ -172,65 +228,51 @@ def show_list():
     st.session_state.booking_success = None
     st.session_state.payment_done = False
 
-# ─── HEADER & NAVBAR ──────────────────────────────────────────────────────────
-# 1. Blue Topbar
-st.markdown("""
+# ─── HEADER & NAVBAR (100% identical HTML/CSS) ────────────────────────────────
+active_page = st.session_state.page
+
+def get_nav_link_html(name):
+    is_active = (active_page == name)
+    active_style = "color: #2563EB; border-bottom: 2px solid #2563EB; font-weight: 700; padding-bottom: 4px;" if is_active else "color: #4B5563; font-weight: 500;"
+    return f'<a href="?nav={urllib.parse.quote(name)}" target="_self" style="text-decoration: none; {active_style} font-size: 0.95rem; margin: 0 12px; transition: color 0.2s; font-family: \'Inter\', sans-serif;">{name}</a>'
+
+header_html = f"""
+<!-- Top Bar -->
 <div style="background-color: #0F2C59; color: rgba(255,255,255,0.9); padding: 8px 40px; display: flex; justify-content: space-between; font-size: 0.78rem; font-family: 'Inter', sans-serif;">
     <div>📍 Semarang, Jawa Tengah &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 📞 (024) 1234-567</div>
     <div style="display: flex; gap: 20px;">
-        <span>Tentang Kami</span>
-        <span>Bantuan</span>
-        <span style="color: #10B981; font-weight: 600;">🟢 WhatsApp</span>
+        <span style="cursor: pointer;">Tentang Kami</span>
+        <span style="cursor: pointer;">Bantuan</span>
+        <span style="color: #10B981; font-weight: 600; cursor: pointer;">🟢 WhatsApp</span>
     </div>
 </div>
-""", unsafe_allow_html=True)
 
-# 2. White Navbar
-st.markdown("""<div style="height: 10px;"></div>""", unsafe_allow_html=True)
-nav_container = st.container()
-with nav_container:
-    col_logo, col_links, col_btn = st.columns([1.5, 3.5, 1.2])
+<!-- Nav Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; background-color: white; border-bottom: 1px solid #E5E7EB; font-family: 'Inter', sans-serif; position: relative; z-index: 10;">
+    <!-- Logo -->
+    <a href="?nav=Beranda" target="_self" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+        <span style="background: #2563EB; color: white; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 1.1rem;">🏠</span>
+        <span style="font-weight: 800; font-size: 1.35rem; color: #1F2937;">Kos<span style="color: #2563EB;">Semarang</span>.id</span>
+    </a>
     
-    with col_logo:
-        st.markdown("""
-        <div style="display: flex; align-items: center; gap: 8px; padding-left: 40px; padding-top: 6px;">
-            <span style="background: #2563EB; color: white; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 1.1rem;">🏠</span>
-            <span style="font-weight: 800; font-size: 1.35rem; color: #1F2937; font-family: 'Inter', sans-serif;">Kos<span style="color: #2563EB;">Semarang</span>.id</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    with col_links:
-        # Navigation tabs as buttons
-        nav_cols = st.columns(5)
-        pages = ["Beranda", "Cari Kos", "Peta Lokasi", "Tentang", "Kontak"]
-        for i, page_name in enumerate(pages):
-            with nav_cols[i]:
-                # Style active page
-                is_active = st.session_state.page == page_name
-                # Use custom CSS styling directly on Streamlit buttons to make them look like tabs
-                if st.button(page_name, key=f"nav_{page_name}", use_container_width=True):
-                    st.session_state.page = page_name
-                    st.session_state.selected_kos_id = None
-                    st.rerun()
-                    
-    with col_btn:
-        # Orange chat button
-        # Apply custom style to the chat button
-        st.markdown("""
-        <style>
-        div[element-id="tanya_kosi_top"] button {
-            background-color: #FF5A36 !important;
-            color: white !important;
-            border: none !important;
-            font-weight: bold !important;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-        if st.button("🤖 Tanya Kosi", key="tanya_kosi_top", use_container_width=True):
-            st.session_state.page = "Chatbot"
-            st.rerun()
-
-st.markdown("""<hr style="margin: 10px 0 0 0; border: 0; border-top: 1px solid #E5E7EB;">""", unsafe_allow_html=True)
+    <!-- Navigation Links -->
+    <div style="display: flex; align-items: center;">
+        {get_nav_link_html("Beranda")}
+        {get_nav_link_html("Cari Kos")}
+        {get_nav_link_html("Peta Lokasi")}
+        {get_nav_link_html("Tentang")}
+        {get_nav_link_html("Kontak")}
+    </div>
+    
+    <!-- Orange Chat Button -->
+    <div>
+        <a href="?nav=Chatbot" target="_self" style="background-color: #FF5A36; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: background-color 0.2s;">
+            🤖 Tanya Kosi
+        </a>
+    </div>
+</div>
+"""
+st.markdown(header_html, unsafe_allow_html=True)
 
 # Load base64 city background
 try:
@@ -247,6 +289,7 @@ if st.session_state.page in ["Beranda", "Cari Kos"]:
     # Detail View
     if st.session_state.selected_kos_id is not None:
         st.markdown("<div class='main-content'>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
         kos_id = st.session_state.selected_kos_id
         kos = next((k for k in KOS_DATA if k["id"] == kos_id), None)
         
@@ -361,8 +404,8 @@ if st.session_state.page in ["Beranda", "Cari Kos"]:
     else:
         # 1. Hero banner section with city panorama background
         st.markdown(f"""
-        <div style="{hero_bg_style} background-size: cover; background-position: center; padding: 80px 40px 100px 40px; text-align: center; color: white; font-family: 'Inter', sans-serif;">
-            <h1 style="font-size: 2.75rem; font-weight: 800; color: white; margin-bottom: 8px; letter-spacing: -0.5px;">Hai, mau cari kos di mana?</h1>
+        <div style="{hero_bg_style} background-size: cover; background-position: center; padding: 84px 40px 100px 40px; text-align: center; color: white; font-family: 'Inter', sans-serif;">
+            <h1 style="font-size: 2.8rem; font-weight: 800; color: white; margin-bottom: 8px; letter-spacing: -0.5px;">Hai, mau cari kos di mana?</h1>
             <p style="font-size: 1.15rem; color: rgba(255,255,255,0.9); margin-bottom: 0;">Temukan ratusan kos terverifikasi di Semarang — murah, nyaman, dekat kampus.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -373,49 +416,59 @@ if st.session_state.page in ["Beranda", "Cari Kos"]:
         # 3. Search Box Card
         st.markdown("""<div style="height: 15px;"></div>""", unsafe_allow_html=True)
         with st.container(border=True):
-            st.markdown("""
-            <div style="display: flex; gap: 24px; border-bottom: 1px solid #E5E7EB; margin-bottom: 16px; padding-bottom: 10px;">
-                <span style="color: #2563EB; font-weight: 700; border-bottom: 2px solid #2563EB; padding-bottom: 10px; cursor: pointer; font-size: 0.95rem;">🏠 Cari Kos</span>
-                <span style="color: #6B7280; font-weight: 500; padding-bottom: 10px; cursor: pointer; font-size: 0.95rem;">🗺️ Lihat Peta</span>
-                <span style="color: #6B7280; font-weight: 500; padding-bottom: 10px; cursor: pointer; font-size: 0.95rem;">🤖 Tanya AI</span>
+            # Custom Search Tabs mimicking Flask App exactly
+            search_card_tabs_html = f"""
+            <div style="display: flex; gap: 24px; border-bottom: 1px solid #E5E7EB; margin-bottom: 16px; padding-bottom: 10px; font-family: 'Inter', sans-serif;">
+                <a href="?nav=Cari Kos" target="_self" style="color: #2563EB; font-weight: 700; border-bottom: 2px solid #2563EB; padding-bottom: 10px; text-decoration: none; font-size: 0.95rem;">🏠 Cari Kos</a>
+                <a href="?nav=Peta Lokasi" target="_self" style="color: #6B7280; font-weight: 500; padding-bottom: 10px; text-decoration: none; font-size: 0.95rem;">🗺️ Lihat Peta</a>
+                <a href="?nav=Chatbot" target="_self" style="color: #6B7280; font-weight: 500; padding-bottom: 10px; text-decoration: none; font-size: 0.95rem;">🤖 Tanya AI</a>
             </div>
-            """, unsafe_allow_html=True)
+            """
+            st.markdown(search_card_tabs_html, unsafe_allow_html=True)
             
             # Select boxes row
-            s_col1, s_col2, s_col3 = st.columns([2, 1, 1])
+            s_col1, s_col2, s_col3, s_col4 = st.columns([2, 1, 1, 0.8])
             with s_col1:
-                # Custom Selectbox for Area/Kecamatan
                 st.session_state.search_area = st.selectbox("Lokasi / Area", ["Semua Area"] + KECAMATAN_LIST, index=(["Semua Area"] + KECAMATAN_LIST).index(st.session_state.search_area))
             with s_col2:
-                # Custom Selectbox for Tipe Kos
                 st.session_state.search_tipe = st.selectbox("Tipe Kos", ["Semua Tipe", "Putra", "Putri", "Campur"], index=["Semua Tipe", "Putra", "Putri", "Campur"].index(st.session_state.search_tipe))
             with s_col3:
-                # Custom Selectbox for Budget
                 st.session_state.search_budget = st.selectbox("Budget per Bulan", ["Semua Budget", "< 1 Juta", "1 - 1.5 Juta", "> 1.5 Juta"], index=["Semua Budget", "< 1 Juta", "1 - 1.5 Juta", "> 1.5 Juta"].index(st.session_state.search_budget))
+            with s_col4:
+                st.write("") # Spacer labels
+                st.write("")
+                if st.button("🔍 Cari Kos", key="btn_search_submit", use_container_width=True):
+                    st.session_state.page = "Cari Kos"
+                    st.rerun()
             
             # Popular Suggestion Tags Row
             tag_cols = st.columns([0.8, 1, 1, 1, 1, 1.2, 4])
             with tag_cols[0]:
-                st.markdown("<p style='color:#6B7280; font-size:0.85rem; padding-top: 8px;'>Populer:</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color:#6B7280; font-size:0.85rem; padding-top: 8px; font-weight: 500;'>Populer:</p>", unsafe_allow_html=True)
             with tag_cols[1]:
                 if st.button("Tembalang", key="tag_tembalang"):
                     st.session_state.search_area = "Tembalang"
+                    st.session_state.page = "Cari Kos"
                     st.rerun()
             with tag_cols[2]:
                 if st.button("Banyumanik", key="tag_banyumanik"):
                     st.session_state.search_area = "Banyumanik"
+                    st.session_state.page = "Cari Kos"
                     st.rerun()
             with tag_cols[3]:
                 if st.button("Kos Putri", key="tag_putri"):
                     st.session_state.search_tipe = "Putri"
+                    st.session_state.page = "Cari Kos"
                     st.rerun()
             with tag_cols[4]:
                 if st.button("Kos Putra", key="tag_putra"):
                     st.session_state.search_tipe = "Putra"
+                    st.session_state.page = "Cari Kos"
                     st.rerun()
             with tag_cols[5]:
                 if st.button("Semarang Tengah", key="tag_tengah"):
                     st.session_state.search_area = "Semarang Tengah"
+                    st.session_state.page = "Cari Kos"
                     st.rerun()
                     
         # 4. Stats Section (Exactly like Flask App dividers)
@@ -424,28 +477,28 @@ if st.session_state.page in ["Beranda", "Cari Kos"]:
         with stats_col1:
             st.markdown("""
             <div style="text-align: center; border-right: 1px solid #E5E7EB; padding: 12px 0;">
-                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">8+</h2>
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2.1rem; margin: 0; font-family: 'Inter', sans-serif;">8+</h2>
                 <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Kos Terdaftar</p>
             </div>
             """, unsafe_allow_html=True)
         with stats_col2:
             st.markdown("""
             <div style="text-align: center; border-right: 1px solid #E5E7EB; padding: 12px 0;">
-                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">7+</h2>
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2.1rem; margin: 0; font-family: 'Inter', sans-serif;">7+</h2>
                 <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Kamar Tersedia</p>
             </div>
             """, unsafe_allow_html=True)
         with stats_col3:
             st.markdown("""
             <div style="text-align: center; border-right: 1px solid #E5E7EB; padding: 12px 0;">
-                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">10</h2>
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2.1rem; margin: 0; font-family: 'Inter', sans-serif;">10</h2>
                 <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Kecamatan</p>
             </div>
             """, unsafe_allow_html=True)
         with stats_col4:
             st.markdown("""
             <div style="text-align: center; padding: 12px 0;">
-                <h2 style="color: #2563EB; font-weight: 800; font-size: 2rem; margin: 0;">2.500+</h2>
+                <h2 style="color: #2563EB; font-weight: 800; font-size: 2.1rem; margin: 0; font-family: 'Inter', sans-serif;">2.500+</h2>
                 <p style="color: #6B7280; font-size: 0.85rem; margin: 0; font-weight: 500;">Pengguna Aktif</p>
             </div>
             """, unsafe_allow_html=True)
@@ -471,7 +524,7 @@ if st.session_state.page in ["Beranda", "Cari Kos"]:
             filtered_kos = [k for k in filtered_kos if k["harga"] > 1500000]
             
         # 6. Displaying results in columns
-        st.markdown(f"<h3 style='color:#1F2937; margin-bottom: 20px;'>Ditemukan {len(filtered_kos)} Kos</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color:#1F2937; margin-bottom: 20px; font-family: Inter, sans-serif;'>Ditemukan {len(filtered_kos)} Kos</h3>", unsafe_allow_html=True)
         
         if not filtered_kos:
             st.warning("Tidak ada kos yang cocok dengan kriteria Anda.")
